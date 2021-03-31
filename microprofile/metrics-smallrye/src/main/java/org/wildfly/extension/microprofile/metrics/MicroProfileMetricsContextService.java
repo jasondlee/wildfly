@@ -75,6 +75,9 @@ public class MicroProfileMetricsContextService implements Service {
                 String method = exchange.getRequestMethod().toString();
                 HeaderValues acceptHeaders = exchange.getRequestHeaders().get(Headers.ACCEPT);
 
+//                final SecurityContext sc = exchange.getSecurityContext();
+//                final Account account = sc.getAuthenticatedAccount();
+//                final IdentityManager identityManager = ((SecurityContextImpl) sc).getIdentityManager();
                 vendorMetricsRegistry.readLock();
                 try {
                     metricsRequestHandler.handleRequest(requestPath, method, acceptHeaders == null ? null : acceptHeaders.stream(), (status, message, headers) -> {
