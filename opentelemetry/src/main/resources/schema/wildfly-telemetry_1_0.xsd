@@ -23,8 +23,8 @@
   -->
 
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           targetNamespace="urn:wildfly:metrics:1.0"
-           xmlns="urn:wildfly:metrics:1.0"
+           targetNamespace="urn:wildfly:telemetry:1.0"
+           xmlns="urn:wildfly:telemetry:1.0"
            elementFormDefault="qualified"
            version="1.0">
 
@@ -38,7 +38,7 @@
                 </xs:annotation>
             </xs:attribute>
             <xs:attribute name="exposed-subsystems" type="xs:string">
-                <xs:annotation>org.wildfly.extenstion.opentelemetry.extension
+                <xs:annotation>
                     <xs:documentation>
                         The names of the subsystems (separated by spaces) that exposes their metrics in the vendor scope (or '*' to expose any subsystem metrics).
                     </xs:documentation>
