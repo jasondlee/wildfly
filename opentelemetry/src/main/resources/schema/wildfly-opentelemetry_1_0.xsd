@@ -23,8 +23,8 @@
   -->
 
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           targetNamespace="urn:wildfly:telemetry:1.0"
-           xmlns="urn:wildfly:telemetry:1.0"
+           targetNamespace="urn:wildfly:opentelemetry:1.0"
+           xmlns="urn:wildfly:opentelemetry:1.0"
            elementFormDefault="qualified"
            version="1.0">
 

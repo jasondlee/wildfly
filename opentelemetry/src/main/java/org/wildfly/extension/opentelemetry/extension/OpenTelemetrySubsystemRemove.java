@@ -10,12 +10,12 @@ import org.jboss.dmr.ModelNode;
  *
  * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
  */
-class TelemetrySubsystemRemove extends AbstractRemoveStepHandler {
+class OpenTelemetrySubsystemRemove extends AbstractRemoveStepHandler {
 
-    static final TelemetrySubsystemRemove INSTANCE = new TelemetrySubsystemRemove();
+    static final OpenTelemetrySubsystemRemove INSTANCE = new OpenTelemetrySubsystemRemove();
 
 
-    private TelemetrySubsystemRemove() {
+    private OpenTelemetrySubsystemRemove() {
     }
 
     @Override

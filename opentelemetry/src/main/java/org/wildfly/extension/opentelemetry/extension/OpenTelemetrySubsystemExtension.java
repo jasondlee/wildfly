@@ -17,17 +17,17 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 /**
  * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
  */
-public class TelemetrySubsystemExtension implements Extension {
-    public static final String SUBSYSTEM_NAME = "telemetry";
+public class OpenTelemetrySubsystemExtension implements Extension {
+    public static final String SUBSYSTEM_NAME = "opentelemetry";
 
     protected static final PathElement SUBSYSTEM_PATH = PathElement.pathElement(SUBSYSTEM, SUBSYSTEM_NAME);
 
-    private static final String RESOURCE_NAME = TelemetrySubsystemExtension.class.getPackage().getName() + ".LocalDescriptions";
+    private static final String RESOURCE_NAME = OpenTelemetrySubsystemExtension.class.getPackage().getName() + ".LocalDescriptions";
 
     protected static final ModelVersion VERSION_1_0_0 = ModelVersion.create(1, 0, 0);
     private static final ModelVersion CURRENT_MODEL_VERSION = VERSION_1_0_0;
 
-    private static final TelemetryParser_1_0 CURRENT_PARSER = new TelemetryParser_1_0();
+    private static final OpenTelemetryParser_1_0 CURRENT_PARSER = new OpenTelemetryParser_1_0();
 
     static ResourceDescriptionResolver getResourceDescriptionResolver(final String... keyPrefix) {
         return getResourceDescriptionResolver(true, keyPrefix);
@@ -42,7 +42,7 @@ public class TelemetrySubsystemExtension implements Extension {
             }
             prefix.append(kp);
         }
-        return new StandardResourceDescriptionResolver(prefix.toString(), RESOURCE_NAME, TelemetrySubsystemExtension.class.getClassLoader(), true, useUnprefixedChildTypes);
+        return new StandardResourceDescriptionResolver(prefix.toString(), RESOURCE_NAME, OpenTelemetrySubsystemExtension.class.getClassLoader(), true, useUnprefixedChildTypes);
     }
 
     @Override
@@ -50,13 +50,13 @@ public class TelemetrySubsystemExtension implements Extension {
         final SubsystemRegistration subsystem = context.registerSubsystem(SUBSYSTEM_NAME, CURRENT_MODEL_VERSION);
         subsystem.registerXMLElementWriter(CURRENT_PARSER);
 
-        final ManagementResourceRegistration registration = subsystem.registerSubsystemModel(TelemetrySubsystemDefinition.INSTANCE);
+        final ManagementResourceRegistration registration = subsystem.registerSubsystemModel(OpenTelemetrySubsystemDefinition.INSTANCE);
         registration.registerOperationHandler(GenericSubsystemDescribeHandler.DEFINITION, GenericSubsystemDescribeHandler.INSTANCE);
 
     }
 
     @Override
     public void initializeParsers(ExtensionParsingContext context) {
-        context.setSubsystemXmlMapping(SUBSYSTEM_NAME, TelemetryParser_1_0.NAMESPACE, CURRENT_PARSER);
+        context.setSubsystemXmlMapping(SUBSYSTEM_NAME, OpenTelemetryParser_1_0.NAMESPACE, CURRENT_PARSER);
     }
 }
