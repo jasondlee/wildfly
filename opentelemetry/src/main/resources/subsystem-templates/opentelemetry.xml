@@ -2,9 +2,9 @@
 
 <!--  See src/resources/configuration/ReadMe.txt for how the configuration assembly works -->
 <config>
-    <extension-module>org.wildfly.extension.metrics</extension-module>
-    <subsystem xmlns="urn:wildfly:telemetry:1.0"
+    <extension-module>org.wildfly.extension.opentelemetry</extension-module>
+    <subsystem xmlns="urn:wildfly:opentelemetry:1.0"
                security-enabled="false"
                exposed-subsystems="*"
-               prefix="${wildfly.telemetry.prefix:wildfly}" />
+               prefix="${wildfly.opentelemetry.prefix:wildfly}" />
 </config>

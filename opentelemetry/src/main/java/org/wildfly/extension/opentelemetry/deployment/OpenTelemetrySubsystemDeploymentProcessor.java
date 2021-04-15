@@ -7,9 +7,9 @@ import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.as.server.deployment.Phase;
 import org.jboss.logging.Logger;
 
-public class TelemetrySubsystemDeploymentProcessor implements DeploymentUnitProcessor {
+public class OpenTelemetrySubsystemDeploymentProcessor implements DeploymentUnitProcessor {
 
-    Logger log = Logger.getLogger(TelemetrySubsystemDeploymentProcessor.class);
+    Logger log = Logger.getLogger(OpenTelemetrySubsystemDeploymentProcessor.class);
 
     /**
      * See {@link Phase} for a description of the different phases

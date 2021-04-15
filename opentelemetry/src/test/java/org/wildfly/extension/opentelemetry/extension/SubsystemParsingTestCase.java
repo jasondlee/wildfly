@@ -28,7 +28,7 @@ import org.junit.Test;
 public class SubsystemParsingTestCase extends AbstractSubsystemTest {
 
     public SubsystemParsingTestCase() {
-        super(TelemetrySubsystemExtension.SUBSYSTEM_NAME, new TelemetrySubsystemExtension());
+        super(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME, new OpenTelemetrySubsystemExtension());
     }
 
     /**
@@ -38,7 +38,7 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
     public void testParseSubsystem() throws Exception {
         //Parse the subsystem xml into operations
         String subsystemXml =
-                "<subsystem xmlns=\"" + TelemetryParser_1_0.NAMESPACE + "\">" +
+                "<subsystem xmlns=\"" + OpenTelemetryParser_1_0.NAMESPACE + "\">" +
                         "</subsystem>";
         List<ModelNode> operations = super.parse(subsystemXml);
 
@@ -52,7 +52,7 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
         Assert.assertEquals(1, addr.size());
         PathElement element = addr.getElement(0);
         Assert.assertEquals(SUBSYSTEM, element.getKey());
-        Assert.assertEquals(TelemetrySubsystemExtension.SUBSYSTEM_NAME, element.getValue());
+        Assert.assertEquals(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME, element.getValue());
     }
 
     /**
@@ -62,13 +62,13 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
     public void testInstallIntoController() throws Exception {
         //Parse the subsystem xml and install into the controller
         String subsystemXml =
-                "<subsystem xmlns=\"" + TelemetryParser_1_0.NAMESPACE + "\">" +
+                "<subsystem xmlns=\"" + OpenTelemetryParser_1_0.NAMESPACE + "\">" +
                         "</subsystem>";
         KernelServices services = super.createKernelServicesBuilder(null).setSubsystemXml(subsystemXml).build();
 
         //Read the whole model and make sure it looks as expected
         ModelNode model = services.readWholeModel();
-        Assert.assertTrue(model.get(SUBSYSTEM).hasDefined(TelemetrySubsystemExtension.SUBSYSTEM_NAME));
+        Assert.assertTrue(model.get(SUBSYSTEM).hasDefined(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME));
     }
 
     /**
@@ -79,7 +79,7 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
     public void testParseAndMarshalModel() throws Exception {
         //Parse the subsystem xml and install into the first controller
         String subsystemXml =
-                "<subsystem xmlns=\"" + TelemetryParser_1_0.NAMESPACE + "\">" +
+                "<subsystem xmlns=\"" + OpenTelemetryParser_1_0.NAMESPACE + "\">" +
                         "</subsystem>";
         KernelServices servicesA = super.createKernelServicesBuilder(null).setSubsystemXml(subsystemXml).build();
         //Get the model and the persisted xml from the first controller
@@ -101,7 +101,7 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
     public void testSubsystemRemoval() throws Exception {
         //Parse the subsystem xml and install into the first controller
         String subsystemXml =
-                "<subsystem xmlns=\"" + TelemetryParser_1_0.NAMESPACE + "\">" +
+                "<subsystem xmlns=\"" + OpenTelemetryParser_1_0.NAMESPACE + "\">" +
                         "</subsystem>";
         KernelServices services = super.createKernelServicesBuilder(null).setSubsystemXml(subsystemXml).build();
         //Checks that the subsystem was removed from the model

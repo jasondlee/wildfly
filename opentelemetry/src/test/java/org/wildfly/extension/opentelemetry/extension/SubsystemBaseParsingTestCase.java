@@ -13,13 +13,13 @@ import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
 public class SubsystemBaseParsingTestCase extends AbstractSubsystemBaseTest {
 
     public SubsystemBaseParsingTestCase() {
-        super(TelemetrySubsystemExtension.SUBSYSTEM_NAME, new TelemetrySubsystemExtension());
+        super(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME, new OpenTelemetrySubsystemExtension());
     }
 
 
     @Override
     protected String getSubsystemXml() throws IOException {
-        return "<subsystem xmlns=\"" + TelemetryParser_1_0.NAMESPACE + "\">" +
+        return "<subsystem xmlns=\"" + OpenTelemetryParser_1_0.NAMESPACE + "\">" +
                 "</subsystem>";
     }
 
