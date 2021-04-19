@@ -408,7 +408,7 @@ class SubsystemAdd extends AbstractBoottimeAddStepHandler {
     ....
 ----
 
-`TelemetrySubsystemAdd` also has a `performBoottime()` method which is used for
+`SubsystemAdd` also has a `performBoottime()` method which is used for
 initializing the deployer chain associated with this subsystem. We will
 talk about the deployers later on. However, the basic idea for all
 operation handlers is that we do any model updates before changing the
@@ -425,7 +425,7 @@ operation handler in constructor.
         registration.registerOperationHandler(REMOVE, SubsystemRemove.INSTANCE, DefaultResourceRemoveDescriptionProvider(resourceRegistration,descriptionResolver) , false);
 ----
 
-`TelemetrySubsystemRemove` extends `AbstractRemoveStepHandler` which takes care
+`SubsystemRemove` extends `AbstractRemoveStepHandler` which takes care
 of removing the resource from the model so we don't need to override its
 `performRemove()` operation, also the add handler did not install any
 services (services will be discussed later) so we can delete the
@@ -807,7 +807,7 @@ when you are done.
 == Parsing and marshalling of the subsystem xml
 
 WildFly uses the Stax API to parse the xml files. This is initialized in
-`TelemetrySubsystemExtension` by mapping our parser onto our namespace:
+`SubsystemExtension` by mapping our parser onto our namespace:
 
 [source,java,options="nowrap"]
 ----
