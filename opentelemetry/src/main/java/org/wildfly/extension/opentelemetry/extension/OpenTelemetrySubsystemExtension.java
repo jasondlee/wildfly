@@ -13,16 +13,16 @@ import org.jboss.as.controller.operations.common.GenericSubsystemDescribeHandler
 import org.jboss.as.controller.parsing.ExtensionParsingContext;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 
-
 /**
- * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
+ * @author <a href="jasondlee@redhat.com">Jason Lee</a>
  */
 public class OpenTelemetrySubsystemExtension implements Extension {
     public static final String SUBSYSTEM_NAME = "opentelemetry";
 
     protected static final PathElement SUBSYSTEM_PATH = PathElement.pathElement(SUBSYSTEM, SUBSYSTEM_NAME);
 
-    private static final String RESOURCE_NAME = OpenTelemetrySubsystemExtension.class.getPackage().getName() + ".LocalDescriptions";
+    private static final String RESOURCE_NAME =
+            OpenTelemetrySubsystemExtension.class.getPackage().getName() + ".LocalDescriptions";
 
     protected static final ModelVersion VERSION_1_0_0 = ModelVersion.create(1, 0, 0);
     private static final ModelVersion CURRENT_MODEL_VERSION = VERSION_1_0_0;
@@ -34,15 +34,17 @@ public class OpenTelemetrySubsystemExtension implements Extension {
 
     }
 
-    static ResourceDescriptionResolver getResourceDescriptionResolver(final boolean useUnprefixedChildTypes, final String... keyPrefix) {
+    static ResourceDescriptionResolver getResourceDescriptionResolver(final boolean useUnprefixedChildTypes,
+                                                                      final String... keyPrefix) {
         StringBuilder prefix = new StringBuilder();
         for (String kp : keyPrefix) {
-            if (prefix.length() > 0){
+            if (prefix.length() > 0) {
                 prefix.append('.');
             }
             prefix.append(kp);
         }
-        return new StandardResourceDescriptionResolver(prefix.toString(), RESOURCE_NAME, OpenTelemetrySubsystemExtension.class.getClassLoader(), true, useUnprefixedChildTypes);
+        return new StandardResourceDescriptionResolver(prefix.toString(), RESOURCE_NAME,
+                OpenTelemetrySubsystemExtension.class.getClassLoader(), true, useUnprefixedChildTypes);
     }
 
     @Override
