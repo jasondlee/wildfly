@@ -30,6 +30,7 @@
 
     <resources>
         <artifact name="${org.wildfly:wildfly-opentelemetry}"/>
+
     </resources>
 
     <dependencies>
@@ -48,8 +49,5 @@
         <module name="org.wildfly.security.elytron"/>
 
         <module name="javax.enterprise.api" />
-
-        <!-- Not optinal because it is required by JaegerEnvTracerConfiguration for retro-compatibility but other tracer implementations should be optional-->
-        <module name="io.jaegertracing.jaeger"/>
     </dependencies>
 </module>
