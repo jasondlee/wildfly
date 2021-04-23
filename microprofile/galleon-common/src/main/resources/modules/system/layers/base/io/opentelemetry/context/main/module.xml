@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
+ 
 <!--
   ~ JBoss, Home of Professional Open Source.
   ~ Copyright 2020, Red Hat, Inc., and individual contributors
@@ -21,33 +20,18 @@
   ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
-
-<module xmlns="urn:jboss:module:1.9" name="org.wildfly.extension.opentelemetry">
-
+  <module xmlns="urn:jboss:module:1.9" name="io.opentelemetry.context">
     <properties>
         <property name="jboss.api" value="private"/>
     </properties>
 
     <resources>
-        <artifact name="${org.wildfly:wildfly-opentelemetry}"/>
-        <artifact name="io.opentelemetry:opentelemetry-api:1.1.0"/>
-        <artifact name="io.opentelemetry:opentelemetry-exporter-jaeger:1.1.0"/>
-        <artifact name="io.opentelemetry:opentelemetry-context:1.1.0"/>
+        <artifact name="${io.opentelemetry:opentelemetry-context}"/>
     </resources>
 
     <dependencies>
-        <module name="java.desktop"/>
-        <module name="java.management"/>
-        <module name="io.undertow.core"/>
-        <!--WFLY-14219 Remove deprecated <module name="javax.api"/> -->
-        <module name="org.jboss.staxmapper"/>
-        <module name="org.jboss.as.controller"/>
-        <module name="org.jboss.as.core-security"/>
-        <module name="org.jboss.as.server"/>
-        <module name="org.jboss.modules"/>
-        <module name="org.jboss.msc"/>
-        <module name="org.jboss.logging"/>
-        <module name="org.jboss.vfs"/>
-        <module name="org.wildfly.common"/>
+        <module name="io.opentelemetry.api"/>
+        <module name="java.logging"/>
     </dependencies>
+
 </module>
