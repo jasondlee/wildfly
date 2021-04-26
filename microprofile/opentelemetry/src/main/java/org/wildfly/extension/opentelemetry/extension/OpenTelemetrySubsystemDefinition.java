@@ -21,10 +21,12 @@ public class OpenTelemetrySubsystemDefinition extends PersistentResourceDefiniti
     public static final OpenTelemetrySubsystemDefinition INSTANCE = new OpenTelemetrySubsystemDefinition();
     static final String OUTBOUND_SOCKET_BINDING_CAPABILITY_NAME = "org.wildfly.network.outbound-socket-binding";
 
-    static final String[] EXPORTED_MODULES = {
-            "io.smallrye.opentracing",
-            "org.wildfly.microprofile.opentracing-smallrye",
-            "io.opentracing.contrib.opentracing-interceptors",
+    public static final String[] MODULES = {
+            "org.wildfly.extension.opentelemetry"
+    };
+
+    public static final String[] EXPORTED_MODULES = {
+            "org.wildfly.extension.opentelemetry"
     };
 
     public static final StringListAttributeDefinition PROPAGATION = StringListAttributeDefinition.Builder
@@ -97,6 +99,7 @@ public class OpenTelemetrySubsystemDefinition extends PersistentResourceDefiniti
             .setAllowExpression(true)
             .setRestartAllServices()
             .build();
+
     public static final SimpleAttributeDefinition REPORTER_FLUSH_INTERVAL = SimpleAttributeDefinitionBuilder
             .create(OpenTelemetryConfigurationConstants.REPORTER_FLUSH_INTERVAL, ModelType.INT, true)
             .setAttributeGroup("reporter-configuration")
@@ -104,6 +107,7 @@ public class OpenTelemetrySubsystemDefinition extends PersistentResourceDefiniti
             .setMeasurementUnit(MeasurementUnit.MILLISECONDS)
             .setRestartAllServices()
             .build();
+
     public static final SimpleAttributeDefinition REPORTER_MAX_QUEUE_SIZE = SimpleAttributeDefinitionBuilder
             .create(OpenTelemetryConfigurationConstants.REPORTER_MAX_QUEUE_SIZE, ModelType.INT, true)
             .setAttributeGroup("reporter-configuration")
@@ -154,9 +158,9 @@ public class OpenTelemetrySubsystemDefinition extends PersistentResourceDefiniti
 
     @Override
     public void registerAdditionalRuntimePackages(final ManagementResourceRegistration resourceRegistration) {
-//        for (String m : MODULES) {
-//            resourceRegistration.registerAdditionalRuntimePackages(RuntimePackageDependency.required(m));
-//        }
+        for (String m : MODULES) {
+            resourceRegistration.registerAdditionalRuntimePackages(RuntimePackageDependency.required(m));
+        }
         for (String m : EXPORTED_MODULES) {
             resourceRegistration.registerAdditionalRuntimePackages(RuntimePackageDependency.required(m));
         }

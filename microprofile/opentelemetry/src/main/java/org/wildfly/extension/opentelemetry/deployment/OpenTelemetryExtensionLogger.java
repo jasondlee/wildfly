@@ -1,13 +1,17 @@
 package org.wildfly.extension.opentelemetry.deployment;
 
 import static org.jboss.logging.Logger.Level.DEBUG;
+import static org.jboss.logging.Logger.Level.ERROR;
 import static org.jboss.logging.Logger.Level.INFO;
 
 import org.jboss.logging.BasicLogger;
 import org.jboss.logging.Logger;
+import org.jboss.logging.annotations.Cause;
 import org.jboss.logging.annotations.LogMessage;
 import org.jboss.logging.annotations.Message;
+import org.jboss.logging.annotations.MessageLogger;
 
+@MessageLogger(projectCode = "WFLYOTELEXT", length = 4)
 public interface OpenTelemetryExtensionLogger extends BasicLogger {
     OpenTelemetryExtensionLogger ROOT_LOGGER = Logger.getMessageLogger(OpenTelemetryExtensionLogger.class,
             OpenTelemetryExtensionLogger.class.getPackage().getName());
@@ -27,4 +31,7 @@ public interface OpenTelemetryExtensionLogger extends BasicLogger {
     @Message(id = 4, value = "Deployment %s requires use of the '%s' capability but it is not currently registered")
     String deploymentRequiresCapability(String deploymentName, String capabilityName);
 
+    @LogMessage(level = ERROR)
+    @Message(id = 5, value = "Error resolving the OpenTelemetry instance.")
+    void errorResolvingTelemetry(@Cause Exception ex);
 }
