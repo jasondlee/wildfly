@@ -8,6 +8,7 @@ import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.OpenTelemetrySdkBuilder;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import org.jboss.as.controller.capability.CapabilityServiceSupport;
@@ -23,6 +24,7 @@ import org.jboss.as.weld.WeldCapability;
 import org.jboss.logging.Logger;
 import org.jboss.modules.Module;
 import org.jboss.modules.ModuleClassLoader;
+import org.wildfly.security.manager.WildFlySecurityManager;
 
 public class OpenTelemetrySubsystemDeploymentProcessor implements DeploymentUnitProcessor {
 
@@ -71,17 +73,28 @@ public class OpenTelemetrySubsystemDeploymentProcessor implements DeploymentUnit
     // Basically a clone of TracingDeploymentProcessor.injectTracer(), but simplified until things are working, then
     // we'll add any missing complexity that's needed.
     private void injectTracer(DeploymentPhaseContext deploymentPhaseContext, CapabilityServiceSupport support) {
-        DeploymentUnit deploymentUnit = deploymentPhaseContext.getDeploymentUnit();
+        OpenTelemetry openTelemetry = null;
+        final DeploymentUnit deploymentUnit = deploymentPhaseContext.getDeploymentUnit();
+        final ClassLoader initialCl = WildFlySecurityManager.getCurrentContextClassLoaderPrivileged();
         final Module module = deploymentUnit.getAttachment(Attachments.MODULE);
         final ModuleClassLoader moduleCL = module.getClassLoader();
 
-        SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
+        final SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
                 .addSpanProcessor(BatchSpanProcessor.builder(JaegerGrpcSpanExporter.builder().build()).build())
                 .build();
-        OpenTelemetry openTelemetry = OpenTelemetrySdk.builder()
+        final OpenTelemetrySdkBuilder sdkBuilder = OpenTelemetrySdk.builder()
                 .setTracerProvider(sdkTracerProvider)
-                .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
-                .buildAndRegisterGlobal();
-        OpenTelemetryCdiExtension.registerApplicationOpenTelemetryBean(moduleCL, openTelemetry);
+                .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()));
+
+        try {
+            WildFlySecurityManager.setCurrentContextClassLoaderPrivileged(moduleCL);
+
+            openTelemetry = sdkBuilder.build();
+            OpenTelemetryCdiExtension.registerApplicationOpenTelemetryBean(moduleCL, openTelemetry);
+        } catch (Exception ex) {
+            ROOT_LOGGER.errorResolvingTelemetry(ex);
+        } finally {
+            WildFlySecurityManager.setCurrentContextClassLoaderPrivileged(initialCl);
+        }
     }
 }

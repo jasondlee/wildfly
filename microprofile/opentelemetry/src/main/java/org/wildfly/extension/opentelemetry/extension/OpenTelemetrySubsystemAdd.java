@@ -5,7 +5,9 @@ import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.server.AbstractDeploymentChainStep;
 import org.jboss.as.server.DeploymentProcessorTarget;
+import org.jboss.as.server.deployment.Phase;
 import org.jboss.dmr.ModelNode;
+import org.wildfly.extension.opentelemetry.deployment.OpenTelemetryDependencyProcessor;
 import org.wildfly.extension.opentelemetry.deployment.OpenTelemetrySubsystemDeploymentProcessor;
 
 /**
@@ -32,10 +34,18 @@ class OpenTelemetrySubsystemAdd extends AbstractBoottimeAddStepHandler {
 //        String prefix = TelemetrySubsystemDefinition.PREFIX.resolveModelAttribute(context, model).asStringOrNull();
 //        boolean securityEnabled = TelemetrySubsystemDefinition.SECURITY_ENABLED.resolveModelAttribute(context, model).asBoolean();
 
+
         context.addStep(new AbstractDeploymentChainStep() {
             public void execute(DeploymentProcessorTarget processorTarget) {
-                processorTarget.addDeploymentProcessor(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME,
-                        OpenTelemetrySubsystemDeploymentProcessor.PHASE,
+                processorTarget.addDeploymentProcessor(
+                        OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME,
+                        Phase.DEPENDENCIES,
+                        6401,
+                        new OpenTelemetryDependencyProcessor()
+                );
+                processorTarget.addDeploymentProcessor(
+                        OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME,
+                        Phase.POST_MODULE,
                         OpenTelemetrySubsystemDeploymentProcessor.PRIORITY,
                         new OpenTelemetrySubsystemDeploymentProcessor());
 
