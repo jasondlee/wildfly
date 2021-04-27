@@ -49,6 +49,10 @@
         <artifact name="io.grpc:grpc-okhttp:1.36.1"/>
         <artifact name="io.grpc:grpc-protobuf-lite:1.36.1"/>
         <artifact name="com.google.errorprone:error_prone_annotations:2.4.0"/>
+        <artifact name="com.google.guava:failureaccess:1.0.1"/>
+        <artifact name="com.squareup.okio:okio:1.13.0"/>
+        <artifact name="io.perfmark:perfmark-api:0.23.0"/>
+        <artifact name="org.codehaus.mojo:animal-sniffer-annotations:1.19"/>
     </resources>
 
     <dependencies>

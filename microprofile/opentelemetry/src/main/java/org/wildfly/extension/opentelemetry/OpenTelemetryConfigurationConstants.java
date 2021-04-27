@@ -4,6 +4,7 @@ public final class OpenTelemetryConfigurationConstants {
     private OpenTelemetryConfigurationConstants() {
 
     }
+    public static final String OPENTELEMETRY_SERVICE_NAME = "opentelemetry.serviceName";
 
     public static final String TRACER_CONFIGURATION = "tracer-configuration";
     public static final String TRACER_CONFIGURATION_NAME = "tracer-configuration-name";

@@ -34,4 +34,8 @@ public interface OpenTelemetryExtensionLogger extends BasicLogger {
     @LogMessage(level = ERROR)
     @Message(id = 5, value = "Error resolving the OpenTelemetry instance.")
     void errorResolvingTelemetry(@Cause Exception ex);
+
+    @LogMessage(level = DEBUG)
+    @Message(id = 6, value = "Deriving service name based on the deployment unit's name: %s")
+    void serviceNameDerivedFromDeploymentUnit(String serviceName);
 }
