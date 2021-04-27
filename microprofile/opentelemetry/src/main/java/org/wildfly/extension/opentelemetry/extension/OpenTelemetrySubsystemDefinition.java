@@ -1,7 +1,7 @@
 package org.wildfly.extension.opentelemetry.extension;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.PersistentResourceDefinition;
@@ -11,8 +11,6 @@ import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.StringListAttributeDefinition;
 import org.jboss.as.controller.access.management.SensitiveTargetAccessConstraintDefinition;
 import org.jboss.as.controller.client.helpers.MeasurementUnit;
-import org.jboss.as.controller.registry.ManagementResourceRegistration;
-import org.jboss.as.controller.registry.RuntimePackageDependency;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants;
@@ -131,38 +129,16 @@ public class OpenTelemetrySubsystemDefinition extends PersistentResourceDefiniti
     protected OpenTelemetrySubsystemDefinition() {
         super(OpenTelemetrySubsystemExtension.SUBSYSTEM_PATH,
                 OpenTelemetrySubsystemExtension.getResourceDescriptionResolver(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME),
-                //We always need to add an 'add' operation
                 OpenTelemetrySubsystemAdd.INSTANCE,
-                //Every resource that is added, normally needs a remove operation
                 OpenTelemetrySubsystemRemove.INSTANCE);
     }
 
     @Override
     public Collection<AttributeDefinition> getAttributes() {
-        return Arrays.asList(PROPAGATION, SAMPLER_TYPE, SAMPLER_PARAM, SAMPLER_MANAGER_HOST_PORT,
-                SENDER_BINDING, SENDER_ENDPOINT, SENDER_AUTH_TOKEN,
-                SENDER_AUTH_USER, SENDER_AUTH_PASSWORD, REPORTER_LOG_SPANS,
-                REPORTER_FLUSH_INTERVAL, REPORTER_MAX_QUEUE_SIZE, TRACER_TAGS, TRACEID_128BIT);
-    }
-
-    @Override
-    public void registerOperations(ManagementResourceRegistration resourceRegistration) {
-        super.registerOperations(resourceRegistration);
-        //you can register additional operations here
-    }
-
-    @Override
-    public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-        //you can register attributes here
-    }
-
-    @Override
-    public void registerAdditionalRuntimePackages(final ManagementResourceRegistration resourceRegistration) {
-        for (String m : MODULES) {
-            resourceRegistration.registerAdditionalRuntimePackages(RuntimePackageDependency.required(m));
-        }
-        for (String m : EXPORTED_MODULES) {
-            resourceRegistration.registerAdditionalRuntimePackages(RuntimePackageDependency.required(m));
-        }
+        return Collections.EMPTY_LIST;
+//        return Arrays.asList(PROPAGATION, SAMPLER_TYPE, SAMPLER_PARAM, SAMPLER_MANAGER_HOST_PORT,
+//                SENDER_BINDING, SENDER_ENDPOINT, SENDER_AUTH_TOKEN,
+//                SENDER_AUTH_USER, SENDER_AUTH_PASSWORD, REPORTER_LOG_SPANS,
+//                REPORTER_FLUSH_INTERVAL, REPORTER_MAX_QUEUE_SIZE, TRACER_TAGS, TRACEID_128BIT);
     }
 }
