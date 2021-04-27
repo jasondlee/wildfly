@@ -47,6 +47,8 @@
         <artifact name="io.grpc:grpc-context:1.36.1"/>
         <artifact name="io.grpc:grpc-protobuf:1.36.1"/>
         <artifact name="io.grpc:grpc-okhttp:1.36.1"/>
+        <artifact name="io.grpc:grpc-protobuf-lite:1.36.1"/>
+        <artifact name="com.google.errorprone:error_prone_annotations:2.4.0"/>
     </resources>
 
     <dependencies>
@@ -67,5 +69,6 @@
         <module name="org.wildfly.security.elytron"/>
 
         <module name="javax.enterprise.api" />
+        <module name="sun.jdk"/>
     </dependencies>
 </module>
