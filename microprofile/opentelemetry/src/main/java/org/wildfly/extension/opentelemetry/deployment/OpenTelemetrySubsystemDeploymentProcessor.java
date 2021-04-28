@@ -2,12 +2,16 @@ package org.wildfly.extension.opentelemetry.deployment;
 
 import static org.jboss.as.weld.Capabilities.WELD_CAPABILITY_NAME;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.OPENTELEMETRY_SERVICE_NAME;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.OPENTELEMETRY_TRACER;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.TRACER_CONFIGURATION_NAME;
 import static org.wildfly.extension.opentelemetry.deployment.OpenTelemetryExtensionLogger.ROOT_LOGGER;
 
 import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
+import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporterBuilder;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.OpenTelemetrySdkBuilder;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
@@ -18,6 +22,7 @@ import org.jboss.as.ee.structure.DeploymentTypeMarker;
 import org.jboss.as.server.deployment.AttachmentKey;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
+import org.jboss.as.server.deployment.DeploymentResourceSupport;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
@@ -30,10 +35,12 @@ import org.jboss.metadata.javaee.spec.ParamValueMetaData;
 import org.jboss.metadata.web.jboss.JBossWebMetaData;
 import org.jboss.modules.Module;
 import org.jboss.modules.ModuleClassLoader;
+import org.wildfly.extension.opentelemetry.extension.OpenTelemetrySubsystemExtension;
 import org.wildfly.security.manager.WildFlySecurityManager;
 
 public class OpenTelemetrySubsystemDeploymentProcessor implements DeploymentUnitProcessor {
     private static final AttachmentKey<OpenTelemetry> ATTACHMENT_KEY = AttachmentKey.create(OpenTelemetry.class);
+    private static final AttachmentKey<Tracer> TRACER_ATTACHMENT_KEY = AttachmentKey.create(Tracer.class);
 
     /**
      * See {@link Phase} for a description of the different phases
@@ -80,14 +87,15 @@ public class OpenTelemetrySubsystemDeploymentProcessor implements DeploymentUnit
     // Basically a clone of TracingDeploymentProcessor.injectTracer(), but simplified until things are working, then
     // we'll add any missing complexity that's needed.
     private void injectTracer(DeploymentPhaseContext deploymentPhaseContext, CapabilityServiceSupport support) {
-        OpenTelemetry openTelemetry = null;
         final DeploymentUnit deploymentUnit = deploymentPhaseContext.getDeploymentUnit();
         final ClassLoader initialCl = WildFlySecurityManager.getCurrentContextClassLoaderPrivileged();
         final Module module = deploymentUnit.getAttachment(Attachments.MODULE);
         final ModuleClassLoader moduleCL = module.getClassLoader();
 
+        final JaegerGrpcSpanExporterBuilder jaeger = JaegerGrpcSpanExporter.builder();
+//        jaeger.setEndpoint()
         final SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-                .addSpanProcessor(BatchSpanProcessor.builder(JaegerGrpcSpanExporter.builder().build()).build())
+                .addSpanProcessor(BatchSpanProcessor.builder(jaeger.build()).build())
                 .build();
         final OpenTelemetrySdkBuilder sdkBuilder = OpenTelemetrySdk.builder()
                 .setTracerProvider(sdkTracerProvider)
@@ -95,22 +103,27 @@ public class OpenTelemetrySubsystemDeploymentProcessor implements DeploymentUnit
 
         try {
             WildFlySecurityManager.setCurrentContextClassLoaderPrivileged(moduleCL);
+            String serviceName = getServiceName(deploymentUnit);
 
-            openTelemetry = sdkBuilder.build();
+            final OpenTelemetry openTelemetry = sdkBuilder.build();
             OpenTelemetryCdiExtension.registerApplicationOpenTelemetryBean(moduleCL, openTelemetry);
             deploymentUnit.putAttachment(ATTACHMENT_KEY, openTelemetry);
+
+            final Tracer tracer = openTelemetry.getTracer(serviceName);
+            OpenTelemetryCdiExtension.registerApplicationTracer(moduleCL, tracer);
+
+            deploymentUnit.addToAttachmentList(ServletContextAttribute.ATTACHMENT_KEY, new ServletContextAttribute(OPENTELEMETRY_SERVICE_NAME, serviceName));
+            deploymentUnit.addToAttachmentList(ServletContextAttribute.ATTACHMENT_KEY, new ServletContextAttribute(OPENTELEMETRY_TRACER, tracer));
+            ROOT_LOGGER.registeringTracer(tracer.getClass().getName());
+            deploymentUnit.putAttachment(TRACER_ATTACHMENT_KEY, tracer);
+
+            DeploymentResourceSupport deploymentResourceSupport = deploymentUnit.getAttachment(Attachments.DEPLOYMENT_RESOURCE_SUPPORT);
+            deploymentResourceSupport.getDeploymentSubsystemModel(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME).get(TRACER_CONFIGURATION_NAME).set(tracer.getClass().getName());
         } catch (Exception ex) {
             ROOT_LOGGER.errorResolvingTelemetry(ex);
         } finally {
             WildFlySecurityManager.setCurrentContextClassLoaderPrivileged(initialCl);
         }
-
-        String serviceName = getServiceName(deploymentUnit);
-
-        deploymentUnit.addToAttachmentList(ServletContextAttribute.ATTACHMENT_KEY, new ServletContextAttribute(OPENTELEMETRY_SERVICE_NAME, serviceName));
-//        deploymentUnit.addToAttachmentList(ServletContextAttribute.ATTACHMENT_KEY, new ServletContextAttribute(SMALLRYE_OPENTRACING_TRACER, tracer));
-//        deploymentUnit.addToAttachmentList(ServletContextAttribute.ATTACHMENT_KEY, new ServletContextAttribute(SMALLRYE_OPENTRACING_TRACER_MANAGED, true));
-//        ROOT_LOGGER.registeringTracer(tracer.getClass().getName());
     }
 
     private String getServiceName(DeploymentUnit deploymentUnit) {
