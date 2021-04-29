@@ -40,7 +40,8 @@ public class OpenTelemetryDeploymentDefinition extends SimpleResourceDefinition 
             .build();
 
     private OpenTelemetryDeploymentDefinition() {
-          super(new Parameters(OpenTelemetrySubsystemExtension.SUBSYSTEM_PATH, OpenTelemetrySubsystemExtension.getResourceDescriptionResolver())
+          super(new Parameters(OpenTelemetrySubsystemExtension.SUBSYSTEM_PATH,
+                  OpenTelemetrySubsystemExtension.getResourceDescriptionResolver())
                   .setFeature(false));
     }
 

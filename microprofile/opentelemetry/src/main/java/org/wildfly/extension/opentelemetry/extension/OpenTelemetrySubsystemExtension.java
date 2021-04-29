@@ -51,11 +51,10 @@ public class OpenTelemetrySubsystemExtension implements Extension {
     public void initialize(ExtensionContext context) {
         final SubsystemRegistration subsystem = context.registerSubsystem(SUBSYSTEM_NAME, CURRENT_MODEL_VERSION);
         subsystem.registerXMLElementWriter(CURRENT_PARSER);
-        subsystem.registerDeploymentModel(OpenTelemetryDeploymentDefinition.INSTANCE);
 
         final ManagementResourceRegistration registration = subsystem.registerSubsystemModel(OpenTelemetrySubsystemDefinition.INSTANCE);
         registration.registerOperationHandler(GenericSubsystemDescribeHandler.DEFINITION, GenericSubsystemDescribeHandler.INSTANCE);
-
+        subsystem.registerDeploymentModel(OpenTelemetryDeploymentDefinition.INSTANCE);
     }
 
     @Override

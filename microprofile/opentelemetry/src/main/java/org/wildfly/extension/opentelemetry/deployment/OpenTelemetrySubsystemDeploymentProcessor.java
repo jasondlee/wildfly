@@ -3,6 +3,7 @@ package org.wildfly.extension.opentelemetry.deployment;
 import static org.jboss.as.weld.Capabilities.WELD_CAPABILITY_NAME;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.OPENTELEMETRY_SERVICE_NAME;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.OPENTELEMETRY_TRACER;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.TRACER_CONFIGURATION;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.TRACER_CONFIGURATION_NAME;
 import static org.wildfly.extension.opentelemetry.deployment.OpenTelemetryExtensionLogger.ROOT_LOGGER;
 
@@ -41,11 +42,6 @@ public class OpenTelemetrySubsystemDeploymentProcessor implements DeploymentUnit
     private static final AttachmentKey<OpenTelemetry> ATTACHMENT_KEY = AttachmentKey.create(OpenTelemetry.class);
     private static final AttachmentKey<Tracer> TRACER_ATTACHMENT_KEY = AttachmentKey.create(Tracer.class);
 
-    /**
-     * The relative order of this processor within the {@link #PHASE}.
-     * The current number is large enough for it to happen after all
-     * the standard deployment unit processors that come with JBoss AS.
-     */
     public static final int PRIORITY = 0x4000;
 
     private Logger log = Logger.getLogger(OpenTelemetrySubsystemDeploymentProcessor.class);
@@ -95,30 +91,22 @@ public class OpenTelemetrySubsystemDeploymentProcessor implements DeploymentUnit
                 .setTracerProvider(sdkTracerProvider)
                 .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()));
 
-        try {
-            WildFlySecurityManager.setCurrentContextClassLoaderPrivileged(moduleCL);
-            String serviceName = getServiceName(deploymentUnit);
+        String serviceName = getServiceName(deploymentUnit);
 
-            final OpenTelemetry openTelemetry = sdkBuilder.build();
-            OpenTelemetryCdiExtension.registerApplicationOpenTelemetryBean(moduleCL, openTelemetry);
-            deploymentUnit.putAttachment(ATTACHMENT_KEY, openTelemetry);
+        final OpenTelemetry openTelemetry = sdkBuilder.build();
+        final Tracer tracer = openTelemetry.getTracer(serviceName);
+        OpenTelemetryCdiExtension.registerApplicationOpenTelemetryBean(moduleCL, openTelemetry);
+        OpenTelemetryCdiExtension.registerApplicationTracer(moduleCL, tracer);
 
-            final Tracer tracer = openTelemetry.getTracer(serviceName);
-            OpenTelemetryCdiExtension.registerApplicationTracer(moduleCL, tracer);
+        deploymentUnit.putAttachment(ATTACHMENT_KEY, openTelemetry);
+        deploymentUnit.addToAttachmentList(ServletContextAttribute.ATTACHMENT_KEY, new ServletContextAttribute(OPENTELEMETRY_SERVICE_NAME, serviceName));
+        deploymentUnit.addToAttachmentList(ServletContextAttribute.ATTACHMENT_KEY, new ServletContextAttribute(OPENTELEMETRY_TRACER, tracer));
+        ROOT_LOGGER.registeringTracer(tracer.getClass().getName());
+        deploymentUnit.putAttachment(TRACER_ATTACHMENT_KEY, tracer);
 
-            deploymentUnit.addToAttachmentList(ServletContextAttribute.ATTACHMENT_KEY, new ServletContextAttribute(OPENTELEMETRY_SERVICE_NAME, serviceName));
-            deploymentUnit.addToAttachmentList(ServletContextAttribute.ATTACHMENT_KEY, new ServletContextAttribute(OPENTELEMETRY_TRACER, tracer));
-            ROOT_LOGGER.registeringTracer(tracer.getClass().getName());
-            deploymentUnit.putAttachment(TRACER_ATTACHMENT_KEY, tracer);
-
-            DeploymentResourceSupport deploymentResourceSupport = deploymentUnit.getAttachment(Attachments.DEPLOYMENT_RESOURCE_SUPPORT);
-            deploymentResourceSupport.getDeploymentSubsystemModel(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME).get(TRACER_CONFIGURATION_NAME).set(tracer.getClass().getName());
-            deploymentResourceSupport.getDeploymentSubsystemModel(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME).get(TRACER_CONFIGURATION_NAME).set(tracer.getClass().getName());
-        } catch (Exception ex) {
-            ROOT_LOGGER.errorResolvingTelemetry(ex);
-        } finally {
-            WildFlySecurityManager.setCurrentContextClassLoaderPrivileged(initialCl);
-        }
+        DeploymentResourceSupport deploymentResourceSupport = deploymentUnit.getAttachment(Attachments.DEPLOYMENT_RESOURCE_SUPPORT);
+        deploymentResourceSupport.getDeploymentSubsystemModel(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME).get(TRACER_CONFIGURATION).set(tracer.getClass().getName());
+        deploymentResourceSupport.getDeploymentSubsystemModel(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME).get(TRACER_CONFIGURATION_NAME).set(tracer.getClass().getName());
     }
 
     private String getServiceName(DeploymentUnit deploymentUnit) {
