@@ -26,7 +26,6 @@ import org.jboss.as.server.deployment.DeploymentResourceSupport;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
-import org.jboss.as.server.deployment.Phase;
 import org.jboss.as.web.common.ServletContextAttribute;
 import org.jboss.as.web.common.WarMetaData;
 import org.jboss.as.weld.WeldCapability;
@@ -41,11 +40,6 @@ import org.wildfly.security.manager.WildFlySecurityManager;
 public class OpenTelemetrySubsystemDeploymentProcessor implements DeploymentUnitProcessor {
     private static final AttachmentKey<OpenTelemetry> ATTACHMENT_KEY = AttachmentKey.create(OpenTelemetry.class);
     private static final AttachmentKey<Tracer> TRACER_ATTACHMENT_KEY = AttachmentKey.create(Tracer.class);
-
-    /**
-     * See {@link Phase} for a description of the different phases
-     */
-    public static final Phase PHASE = Phase.DEPENDENCIES;
 
     /**
      * The relative order of this processor within the {@link #PHASE}.
@@ -118,6 +112,7 @@ public class OpenTelemetrySubsystemDeploymentProcessor implements DeploymentUnit
             deploymentUnit.putAttachment(TRACER_ATTACHMENT_KEY, tracer);
 
             DeploymentResourceSupport deploymentResourceSupport = deploymentUnit.getAttachment(Attachments.DEPLOYMENT_RESOURCE_SUPPORT);
+            deploymentResourceSupport.getDeploymentSubsystemModel(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME).get(TRACER_CONFIGURATION_NAME).set(tracer.getClass().getName());
             deploymentResourceSupport.getDeploymentSubsystemModel(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME).get(TRACER_CONFIGURATION_NAME).set(tracer.getClass().getName());
         } catch (Exception ex) {
             ROOT_LOGGER.errorResolvingTelemetry(ex);

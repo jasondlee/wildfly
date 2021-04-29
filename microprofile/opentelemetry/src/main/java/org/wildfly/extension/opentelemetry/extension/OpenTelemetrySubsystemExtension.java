@@ -19,7 +19,7 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 public class OpenTelemetrySubsystemExtension implements Extension {
     public static final String SUBSYSTEM_NAME = "opentelemetry";
 
-    protected static final PathElement SUBSYSTEM_PATH = PathElement.pathElement(SUBSYSTEM, SUBSYSTEM_NAME);
+    static final PathElement SUBSYSTEM_PATH = PathElement.pathElement(SUBSYSTEM, SUBSYSTEM_NAME);
 
     private static final String RESOURCE_NAME =
             OpenTelemetrySubsystemExtension.class.getPackage().getName() + ".LocalDescriptions";
@@ -51,6 +51,7 @@ public class OpenTelemetrySubsystemExtension implements Extension {
     public void initialize(ExtensionContext context) {
         final SubsystemRegistration subsystem = context.registerSubsystem(SUBSYSTEM_NAME, CURRENT_MODEL_VERSION);
         subsystem.registerXMLElementWriter(CURRENT_PARSER);
+        subsystem.registerDeploymentModel(OpenTelemetryDeploymentDefinition.INSTANCE);
 
         final ManagementResourceRegistration registration = subsystem.registerSubsystemModel(OpenTelemetrySubsystemDefinition.INSTANCE);
         registration.registerOperationHandler(GenericSubsystemDescribeHandler.DEFINITION, GenericSubsystemDescribeHandler.INSTANCE);
