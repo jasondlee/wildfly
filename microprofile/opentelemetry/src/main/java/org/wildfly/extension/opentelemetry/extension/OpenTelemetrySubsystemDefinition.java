@@ -5,13 +5,8 @@ import java.util.Collections;
 
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.PersistentResourceDefinition;
-import org.jboss.as.controller.PropertiesAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
-import org.jboss.as.controller.StringListAttributeDefinition;
-import org.jboss.as.controller.access.management.SensitiveTargetAccessConstraintDefinition;
-import org.jboss.as.controller.client.helpers.MeasurementUnit;
-import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants;
 
@@ -26,6 +21,21 @@ public class OpenTelemetrySubsystemDefinition extends PersistentResourceDefiniti
     public static final String[] EXPORTED_MODULES = {
             "org.wildfly.extension.opentelemetry"
     };
+
+    public static final SimpleAttributeDefinition EXPORTER = SimpleAttributeDefinitionBuilder
+            .create(OpenTelemetryConfigurationConstants.EXPORTER, ModelType.STRING, true)
+            .setAllowExpression(true)
+            .setAllowedValues("JAEGER-THRIFT")
+            .setRestartAllServices()
+            .build();
+
+    public static final SimpleAttributeDefinition SENDER_ENDPOINT = SimpleAttributeDefinitionBuilder
+            .create(OpenTelemetryConfigurationConstants.SENDER_ENDPOINT, ModelType.STRING, true)
+            .setAttributeGroup("sender-configuration")
+            .setAllowExpression(true)
+            .setRestartAllServices()
+            .build();
+/*
 
     public static final StringListAttributeDefinition PROPAGATION = StringListAttributeDefinition.Builder
             .of(OpenTelemetryConfigurationConstants.PROPAGATION)
@@ -66,12 +76,7 @@ public class OpenTelemetrySubsystemDefinition extends PersistentResourceDefiniti
             .addAccessConstraint(SensitiveTargetAccessConstraintDefinition.SOCKET_BINDING_REF)
             .setRestartAllServices()
             .build();
-    public static final SimpleAttributeDefinition SENDER_ENDPOINT = SimpleAttributeDefinitionBuilder
-            .create(OpenTelemetryConfigurationConstants.SENDER_ENDPOINT, ModelType.STRING, true)
-            .setAttributeGroup("sender-configuration")
-            .setAllowExpression(true)
-            .setRestartAllServices()
-            .build();
+
     public static final SimpleAttributeDefinition SENDER_AUTH_TOKEN = SimpleAttributeDefinitionBuilder
             .create(OpenTelemetryConfigurationConstants.SENDER_AUTH_TOKEN, ModelType.STRING, true)
             .setAttributeGroup("sender-configuration")
@@ -125,6 +130,7 @@ public class OpenTelemetrySubsystemDefinition extends PersistentResourceDefiniti
                     .setAllowExpression(true)
                     .setRestartAllServices()
                     .build();
+*/
 
     protected OpenTelemetrySubsystemDefinition() {
         super(OpenTelemetrySubsystemExtension.SUBSYSTEM_PATH,
