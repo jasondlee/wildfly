@@ -40,13 +40,13 @@ class OpenTelemetrySubsystemAdd extends AbstractBoottimeAddStepHandler {
                 processorTarget.addDeploymentProcessor(
                         OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME,
                         Phase.DEPENDENCIES,
-                        6401,
+                        0x1910,
                         new OpenTelemetryDependencyProcessor()
                 );
                 processorTarget.addDeploymentProcessor(
                         OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME,
                         Phase.POST_MODULE,
-                        OpenTelemetrySubsystemDeploymentProcessor.PRIORITY,
+                        0x3810,
                         new OpenTelemetrySubsystemDeploymentProcessor());
 
             }
