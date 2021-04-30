@@ -34,6 +34,9 @@ class OpenTelemetrySubsystemAdd extends AbstractBoottimeAddStepHandler {
 //        String prefix = TelemetrySubsystemDefinition.PREFIX.resolveModelAttribute(context, model).asStringOrNull();
 //        boolean securityEnabled = TelemetrySubsystemDefinition.SECURITY_ENABLED.resolveModelAttribute(context, model).asBoolean();
 
+        String exporter = OpenTelemetrySubsystemDefinition.EXPORTER.resolveModelAttribute(context, model).asString();
+        String endpoint = OpenTelemetrySubsystemDefinition.SENDER_ENDPOINT.resolveModelAttribute(context, model).asStringOrNull();
+
 
         context.addStep(new AbstractDeploymentChainStep() {
             public void execute(DeploymentProcessorTarget processorTarget) {
@@ -47,7 +50,7 @@ class OpenTelemetrySubsystemAdd extends AbstractBoottimeAddStepHandler {
                         OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME,
                         Phase.POST_MODULE,
                         0x3810,
-                        new OpenTelemetrySubsystemDeploymentProcessor());
+                        new OpenTelemetrySubsystemDeploymentProcessor(exporter, endpoint));
 
             }
         }, OperationContext.Stage.RUNTIME);
