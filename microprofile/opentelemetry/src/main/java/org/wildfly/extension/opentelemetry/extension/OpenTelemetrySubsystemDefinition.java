@@ -7,8 +7,14 @@ import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.PersistentResourceDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.registry.ManagementResourceRegistration;
+import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants;
+
+/*
+ * For future reference: https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure#jaeger-exporter
+ */
 
 public class OpenTelemetrySubsystemDefinition extends PersistentResourceDefinition {
     public static final OpenTelemetrySubsystemDefinition INSTANCE = new OpenTelemetrySubsystemDefinition();
@@ -27,13 +33,14 @@ public class OpenTelemetrySubsystemDefinition extends PersistentResourceDefiniti
             .setAllowExpression(true)
             .setAllowedValues("JAEGER-THRIFT")
             .setRestartAllServices()
+            .setDefaultValue(new ModelNode("JAEGER-THRIFT"))
             .build();
 
     public static final SimpleAttributeDefinition SENDER_ENDPOINT = SimpleAttributeDefinitionBuilder
             .create(OpenTelemetryConfigurationConstants.SENDER_ENDPOINT, ModelType.STRING, true)
-            .setAttributeGroup("sender-configuration")
             .setAllowExpression(true)
             .setRestartAllServices()
+//            .setDefaultValue(new ModelNode("http://localhost:14268/api/traces"))
             .build();
 /*
 
@@ -137,6 +144,11 @@ public class OpenTelemetrySubsystemDefinition extends PersistentResourceDefiniti
                 OpenTelemetrySubsystemExtension.getResourceDescriptionResolver(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME),
                 OpenTelemetrySubsystemAdd.INSTANCE,
                 OpenTelemetrySubsystemRemove.INSTANCE);
+    }
+    @Override
+    public void registerChildren(ManagementResourceRegistration resourceRegistration) {
+        super.registerChildren(resourceRegistration);
+//        resourceRegistration.registerSubModel(new JaegerTracerConfigurationDefinition());
     }
 
     @Override
