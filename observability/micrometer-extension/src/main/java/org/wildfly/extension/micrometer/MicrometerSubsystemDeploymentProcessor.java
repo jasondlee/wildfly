@@ -62,14 +62,14 @@ public class MicrometerSubsystemDeploymentProcessor implements DeploymentUnitPro
             throw MICROMETER_LOGGER.deploymentRequiresCapability(deploymentPhaseContext.getDeploymentUnit().getName(),
                     WELD_CAPABILITY_NAME);
         }
-        setupOtelCdiBeans(deploymentPhaseContext, support);
+        setupMicrometerCdiBeans(deploymentPhaseContext, support);
     }
 
     @Override
     public void undeploy(DeploymentUnit context) {
     }
 
-    private void setupOtelCdiBeans(DeploymentPhaseContext deploymentPhaseContext, CapabilityServiceSupport support) throws DeploymentUnitProcessingException {
+    private void setupMicrometerCdiBeans(DeploymentPhaseContext deploymentPhaseContext, CapabilityServiceSupport support) throws DeploymentUnitProcessingException {
         final DeploymentUnit deploymentUnit = deploymentPhaseContext.getDeploymentUnit();
         final ClassLoader initialCl = WildFlySecurityManager.getCurrentContextClassLoaderPrivileged();
         final Module module = deploymentUnit.getAttachment(Attachments.MODULE);
