@@ -22,9 +22,13 @@ package org.wildfly.extension.micrometer;
 import static org.jboss.as.weld.Capabilities.WELD_CAPABILITY_NAME;
 import static org.wildfly.extension.micrometer.MicrometerExtensionLogger.MICROMETER_LOGGER;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.prometheus.PrometheusConfig;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
 import org.jboss.as.controller.capability.CapabilityServiceSupport;
 import org.jboss.as.ee.structure.DeploymentType;
 import org.jboss.as.ee.structure.DeploymentTypeMarker;
+import org.jboss.as.server.deployment.AttachmentKey;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -36,8 +40,7 @@ import org.jboss.modules.ModuleClassLoader;
 import org.wildfly.security.manager.WildFlySecurityManager;
 
 public class MicrometerSubsystemDeploymentProcessor implements DeploymentUnitProcessor {
-//    private static final AttachmentKey<OpenTelemetry> ATTACHMENT_KEY = AttachmentKey.create(OpenTelemetry.class);
-//    private static final AttachmentKey<Tracer> TRACER_ATTACHMENT_KEY = AttachmentKey.create(Tracer.class);
+    private static final AttachmentKey<MeterRegistry> ATTACHMENT_KEY = AttachmentKey.create(MeterRegistry.class);
 
     public static final int PRIORITY = 0x4000;
 
@@ -67,6 +70,8 @@ public class MicrometerSubsystemDeploymentProcessor implements DeploymentUnitPro
 
     @Override
     public void undeploy(DeploymentUnit context) {
+        MeterRegistry registry = context.getAttachment(ATTACHMENT_KEY);
+        registry.close();
     }
 
     private void setupMicrometerCdiBeans(DeploymentPhaseContext deploymentPhaseContext, CapabilityServiceSupport support) throws DeploymentUnitProcessingException {
@@ -77,9 +82,11 @@ public class MicrometerSubsystemDeploymentProcessor implements DeploymentUnitPro
 
         try {
             WildFlySecurityManager.setCurrentContextClassLoaderPrivileged(moduleCL);
+            final MeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
 
-//            deploymentUnit.putAttachment(ATTACHMENT_KEY, openTelemetry);
-//            deploymentUnit.putAttachment(TRACER_ATTACHMENT_KEY, tracer);
+            MicrometerCdiExtension.registerApplicationRegistry(moduleCL, registry);
+
+            deploymentUnit.putAttachment(ATTACHMENT_KEY, registry);
         } catch (SecurityException | IllegalArgumentException ex) {
 //            MICROMETER_LOGGER.errorResolvingTracer(ex);
         } finally {
