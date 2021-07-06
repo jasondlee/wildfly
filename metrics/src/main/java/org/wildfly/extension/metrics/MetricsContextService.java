@@ -76,7 +76,10 @@ public class MetricsContextService implements Service {
         serviceBuilder.setInstance(metricsContextService)
                 .install();
     }
-    public MetricsContextService(Consumer<MetricsContextService> consumer, Supplier<ExtensibleHttpManagement> extensibleHttpManagement, Supplier<WildFlyMetricRegistry> wildflyMetricRegistry, Supplier<Boolean> securityEnabledSupplier) {
+    public MetricsContextService(Consumer<MetricsContextService> consumer,
+                                 Supplier<ExtensibleHttpManagement> extensibleHttpManagement,
+                                 Supplier<WildFlyMetricRegistry> wildflyMetricRegistry,
+                                 Supplier<Boolean> securityEnabledSupplier) {
         this.consumer = consumer;
         this.extensibleHttpManagement = extensibleHttpManagement;
         this.wildflyMetricRegistry = wildflyMetricRegistry;

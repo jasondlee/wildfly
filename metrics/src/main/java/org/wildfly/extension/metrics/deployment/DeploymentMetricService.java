@@ -62,7 +62,9 @@ public class DeploymentMetricService implements Service {
     private final String prefix;
     private MetricRegistration registration;
 
-    public static void install(ServiceTarget serviceTarget, DeploymentUnit deploymentUnit, Resource rootResource, ManagementResourceRegistration managementResourceRegistration, boolean exposeAnySubsystem, List<String> exposedSubsystems, String prefix) {
+    public static void install(ServiceTarget serviceTarget, DeploymentUnit deploymentUnit, Resource rootResource,
+                               ManagementResourceRegistration managementResourceRegistration, boolean exposeAnySubsystem,
+                               List<String> exposedSubsystems, String prefix) {
         PathAddress deploymentAddress = createDeploymentAddressPrefix(deploymentUnit);
 
         ServiceBuilder<?> sb = serviceTarget.addService(deploymentUnit.getServiceName().append("metrics"));
@@ -75,14 +77,15 @@ public class DeploymentMetricService implements Service {
          * the deployment are collected and registered once the deployment services have all been properly installed.
          */
         sb.requires(DeploymentCompleteServiceProcessor.serviceName(deploymentUnit.getServiceName()));
-        sb.setInstance(new DeploymentMetricService(rootResource, managementResourceRegistration, deploymentAddress, metricCollector, metricRegistry, managementExecutor,
-                exposeAnySubsystem, exposedSubsystems, prefix))
+        sb.setInstance(new DeploymentMetricService(rootResource, managementResourceRegistration, deploymentAddress,
+                metricCollector, metricRegistry, managementExecutor, exposeAnySubsystem, exposedSubsystems, prefix))
                 .install();
     }
 
-    private DeploymentMetricService(Resource rootResource, ManagementResourceRegistration managementResourceRegistration, PathAddress deploymentAddress,
-                                    Supplier<MetricCollector> metricCollector, Supplier<MetricRegistry> metricRegistry,
-                                    Supplier<Executor> managementExecutor, boolean exposeAnySubsystem, List<String> exposedSubsystems, String prefix) {
+    private DeploymentMetricService(Resource rootResource, ManagementResourceRegistration managementResourceRegistration,
+                                    PathAddress deploymentAddress, Supplier<MetricCollector> metricCollector,
+                                    Supplier<MetricRegistry> metricRegistry, Supplier<Executor> managementExecutor,
+                                    boolean exposeAnySubsystem, List<String> exposedSubsystems, String prefix) {
         this.rootResource = rootResource;
         this.managementResourceRegistration = managementResourceRegistration;
         this.deploymentAddress = deploymentAddress;

@@ -78,7 +78,11 @@ class MetricsSubsystemAdd extends AbstractBoottimeAddStepHandler {
         if (!context.getCapabilityServiceSupport().hasCapability(MetricsSubsystemDefinition.METRICS_SCAN_CAPABILITY)) {
             context.addStep(new AbstractDeploymentChainStep() {
                 public void execute(DeploymentProcessorTarget processorTarget) {
-                    processorTarget.addDeploymentProcessor(SUBSYSTEM_NAME, INSTALL, POST_MODULE_METRICS, new DeploymentMetricProcessor(exposeAnySubsystem, exposedSubsystems, prefix));
+                    processorTarget.addDeploymentProcessor(
+                            SUBSYSTEM_NAME,
+                            INSTALL,
+                            POST_MODULE_METRICS,
+                            new DeploymentMetricProcessor(exposeAnySubsystem, exposedSubsystems, prefix));
                 }
             }, RUNTIME);
 

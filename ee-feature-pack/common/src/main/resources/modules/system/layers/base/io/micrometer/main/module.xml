@@ -38,6 +38,7 @@
     <dependencies>
         <module name="javax.servlet.api"/>
 
+        <module name="java.management"/>
         <module name="java.logging"/>
     </dependencies>
 </module>

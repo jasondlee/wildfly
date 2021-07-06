@@ -25,8 +25,17 @@ import java.util.Collection;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.PersistentResourceDefinition;
 import org.jboss.as.controller.SimpleResourceDefinition;
+import org.jboss.as.controller.capability.RuntimeCapability;
 
 public class MicrometerSubsystemDefinition extends PersistentResourceDefinition {
+    static final String HTTP_EXTENSIBILITY_CAPABILITY = "org.wildfly.management.http.extensible";
+    public static final String MICROMETER_HTTP_SECURITY_CAPABILITY = "org.wildfly.extension.micrometer.http-context.security-enabled";
+
+    static final RuntimeCapability<Void> MICROMETER_HTTP_CONTEXT_CAPABILITY = RuntimeCapability.Builder
+            .of("org.wildfly.extension.micrometer.http-context", MicrometerContextService.class)
+//            .addRequirements(HTTP_EXTENSIBILITY_CAPABILITY)
+            .build();
+
     public static final String[] MODULES = {
     };
 
@@ -44,7 +53,8 @@ public class MicrometerSubsystemDefinition extends PersistentResourceDefinition 
         super(new SimpleResourceDefinition.Parameters(MicrometerSubsystemExtension.SUBSYSTEM_PATH,
                 MicrometerSubsystemExtension.getResourceDescriptionResolver(MicrometerSubsystemExtension.SUBSYSTEM_NAME))
                 .setAddHandler(MicrometerSubsystemAdd.INSTANCE)
-                .setRemoveHandler(MicrometerSubsystemRemove.INSTANCE));
+                .setRemoveHandler(MicrometerSubsystemRemove.INSTANCE)
+                .addCapabilities(MICROMETER_HTTP_CONTEXT_CAPABILITY));
 
     }
 

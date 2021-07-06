@@ -41,6 +41,8 @@ public class MicrometerSubsystemAdd extends AbstractBoottimeAddStepHandler {
     protected void performBoottime(OperationContext context, ModelNode operation, ModelNode model) throws OperationFailedException {
         super.performBoottime(context, operation, model);
 
+        final MicrometerContextService service = MicrometerContextService.install(context, false);
+
         context.addStep(new AbstractDeploymentChainStep() {
             public void execute(DeploymentProcessorTarget processorTarget) {
                 processorTarget.addDeploymentProcessor(
@@ -53,7 +55,7 @@ public class MicrometerSubsystemAdd extends AbstractBoottimeAddStepHandler {
                         MicrometerSubsystemExtension.SUBSYSTEM_NAME,
                         Phase.POST_MODULE,
                         0x3810,
-                        new MicrometerSubsystemDeploymentProcessor());
+                        new MicrometerSubsystemDeploymentProcessor(service));
 
             }
         }, OperationContext.Stage.RUNTIME);

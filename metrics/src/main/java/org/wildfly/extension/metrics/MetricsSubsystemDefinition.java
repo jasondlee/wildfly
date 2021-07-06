@@ -48,7 +48,8 @@ public class MetricsSubsystemDefinition extends PersistentResourceDefinition {
     public static final String METRICS_HTTP_SECURITY_CAPABILITY = "org.wildfly.extension.metrics.http-context.security-enabled";
     public static final String METRICS_SCAN_CAPABILITY = "org.wildfly.extension.metrics.scan";
 
-    private static final RuntimeCapability<Void> METRICS_COLLECTOR_RUNTIME_CAPABILITY = RuntimeCapability.Builder.of("org.wildfly.extension.metrics.wildfly-collector", MetricCollector.class)
+    private static final RuntimeCapability<Void> METRICS_COLLECTOR_RUNTIME_CAPABILITY =
+            RuntimeCapability.Builder.of("org.wildfly.extension.metrics.wildfly-collector", MetricCollector.class)
             .addRequirements(CLIENT_FACTORY_CAPABILITY, MANAGEMENT_EXECUTOR, PROCESS_STATE_NOTIFIER)
             .build();
 
