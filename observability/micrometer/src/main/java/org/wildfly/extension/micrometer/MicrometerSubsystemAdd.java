@@ -69,27 +69,31 @@ public class MicrometerSubsystemAdd extends AbstractBoottimeAddStepHandler {
         MicrometerRegistryService.install(context, securityEnabled);
         MetricsCollectorService.install(context);
         MicrometerContextService.install(context, securityEnabled);
+        // If the MP Metrics module is not installed, we need to install the WF Metrics DPU and initiate a metrics
+        // collection. If MP Metrics *is* installed, then we do not need to do either of those things, as that module
+        // handles that instead.
+        if (!context.getCapabilityServiceSupport().hasCapability("org.wildfly.extension.metrics.scan")) {
+            context.addStep(new AbstractDeploymentChainStep() {
+                @Override
+                public void execute(DeploymentProcessorTarget processorTarget) {
+                    processorTarget.addDeploymentProcessor(SUBSYSTEM_NAME, DEPENDENCIES, 0x1910,
+                            new MicrometerDependencyProcessor());
+                    processorTarget.addDeploymentProcessor(SUBSYSTEM_NAME, POST_MODULE, POST_MODULE_METRICS - 1, // ???
+                            new MicrometerSubsystemDeploymentProcessor(exposeAnySubsystem, exposedSubsystems, prefix));
+                }
+            }, RUNTIME);
 
-        context.addStep(new AbstractDeploymentChainStep() {
-            @Override
-            public void execute(DeploymentProcessorTarget processorTarget) {
-                processorTarget.addDeploymentProcessor(SUBSYSTEM_NAME, DEPENDENCIES, 0x1910,
-                        new MicrometerDependencyProcessor());
-                processorTarget.addDeploymentProcessor(SUBSYSTEM_NAME, POST_MODULE, POST_MODULE_METRICS-1, // ???
-                        new MicrometerSubsystemDeploymentProcessor(exposeAnySubsystem, exposedSubsystems, prefix));
-            }
-        }, RUNTIME);
+            context.addStep((operationContext, modelNode) -> {
+                ServiceController<?> serviceController = context.getServiceRegistry(false).getService(MICROMETER_COLLECTOR);
+                MetricCollector metricCollector = MetricCollector.class.cast(serviceController.getValue());
 
-        context.addStep((operationContext, modelNode) -> {
-            ServiceController<?> serviceController = context.getServiceRegistry(false).getService(MICROMETER_COLLECTOR);
-            MetricCollector metricCollector = MetricCollector.class.cast(serviceController.getValue());
+                ImmutableManagementResourceRegistration rootResourceRegistration = context.getRootResourceRegistration();
+                Resource rootResource = context.readResourceFromRoot(EMPTY_ADDRESS);
 
-            ImmutableManagementResourceRegistration rootResourceRegistration = context.getRootResourceRegistration();
-            Resource rootResource = context.readResourceFromRoot(EMPTY_ADDRESS);
-
-            metricCollector.collectResourceMetrics(rootResource, rootResourceRegistration,
-                    Function.identity(), exposeAnySubsystem, exposedSubsystems, prefix, null);
-        }, VERIFY);
+                metricCollector.collectResourceMetrics(rootResource, rootResourceRegistration,
+                        Function.identity(), exposeAnySubsystem, exposedSubsystems, prefix, null);
+            }, VERIFY);
+        }
 
         MicrometerExtensionLogger.MICROMETER_LOGGER.activatingSubsystem();
     }
