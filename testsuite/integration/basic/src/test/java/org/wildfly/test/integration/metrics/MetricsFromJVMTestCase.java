@@ -44,6 +44,8 @@ import org.junit.runner.RunWith;
 @RunAsClient
 public class MetricsFromJVMTestCase {
 
+    public static final String JVM_UPTIME = "jvm_uptime_seconds";
+
     // Use an empty deployment as the test deals with base metrics only
     @Deployment(name = "MetricsFromJVMTestCase", managed = false)
     public static Archive<?> deploy() {
@@ -61,13 +63,13 @@ public class MetricsFromJVMTestCase {
 
         String metrics = getPrometheusMetrics(managementClient, true);
         System.out.println("metrics = " + metrics);
-        double uptime1 = getMetricValueFromPrometheusOutput(metrics, "base_jvm_uptime");
+        double uptime1 = getMetricValueFromPrometheusOutput(metrics, JVM_UPTIME);
         assertTrue(uptime1 > 0);
 
         Thread.sleep(sleep);
 
         metrics = getPrometheusMetrics(managementClient, true);
-        double uptime2 = getMetricValueFromPrometheusOutput(metrics, "base_jvm_uptime");
+        double uptime2 = getMetricValueFromPrometheusOutput(metrics, JVM_UPTIME);
         assertTrue(uptime2 > 0);
 
         long interval = System.currentTimeMillis() - start;

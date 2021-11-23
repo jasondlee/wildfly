@@ -1,7 +1,8 @@
 <?xml version="1.0" ?>
 <layer-spec xmlns="urn:jboss:galleon:layer-spec:1.0" name="observability">
     <dependencies>
-        <layer name="metrics" optional="true"/>
-        <layer name="health" optional="true" />
+        <!--        <layer name="metrics" />-->
+        <layer name="micrometer"/>
+        <layer name="health" optional="true"/>
     </dependencies>
 </layer-spec>

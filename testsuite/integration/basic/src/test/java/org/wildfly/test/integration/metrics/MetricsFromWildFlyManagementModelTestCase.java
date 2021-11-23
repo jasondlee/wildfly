@@ -139,9 +139,6 @@ public class MetricsFromWildFlyManagementModelTestCase {
 
         // the request-count in the http-listener will still be present after the undeployment
         checkRequestCount(3, false);
-
-        // the request-count from the deployment must no longer exist
-        checkMetricExistence( "deployment=\"MetricsFromWildFlyManagementModelTestCase.war\"", false);
     }
 
     private static String performCall(URL url) throws Exception {
@@ -150,7 +147,7 @@ public class MetricsFromWildFlyManagementModelTestCase {
     }
 
     private void checkMetricExistence(String label, boolean metricMustExist) throws IOException {
-        String metricName = "wildfly_undertow_request_count_total";
+        String metricName = "undertow_request_count_total";
         String metrics = getPrometheusMetrics(managementClient, true);
         for (String line : metrics.split("\\R")) {
             if (line.startsWith(metricName)) {
@@ -171,7 +168,7 @@ public class MetricsFromWildFlyManagementModelTestCase {
     }
 
     private void checkRequestCount(int expectedCount, boolean metricForDeployment) throws IOException {
-        String metricName = "wildfly_undertow_request_count_total";
+        String metricName = "undertow_request_count_total";
         String metrics = getPrometheusMetrics(managementClient, true);
         System.out.println(">>> metrics = " + metrics);
         for (String line : metrics.split("\\R")) {
@@ -186,16 +183,17 @@ public class MetricsFromWildFlyManagementModelTestCase {
 
                         assertTrue(labels.contains("deployment=\"MetricsFromWildFlyManagementModelTestCase.war\""));
                         assertTrue(labels.contains("subdeployment=\"MetricsFromWildFlyManagementModelTestCase.war\""));
-                        assertTrue(labels.contains("servlet=\"" + TestApplication.class.getName() + "\""));
+                        assertTrue(labels.contains("type=\"servlet\""));
+                        assertTrue(labels.contains("name=\"" + TestApplication.class.getName() + "\""));
                         assertEquals(metrics, Integer.valueOf(expectedCount).doubleValue(), value, 0);
 
                         return;
                     }
                 } else {
                     // check the metrics from the http-listener in the undertow subsystem
-                    if (labels.contains("http_listener=\"default\"")) {
+                    if (labels.contains("type=\"http-listener\"")) {
                         Double value = Double.valueOf(split[1]);
-                        assertTrue(labels.contains("server=\"default-server\""));
+                        assertTrue(labels.contains("name=\"default\""));
                         assertEquals(metrics, Integer.valueOf(expectedCount).doubleValue(), value, 0);
                         return;
 
@@ -203,6 +201,6 @@ public class MetricsFromWildFlyManagementModelTestCase {
                 }
             }
         }
-        fail(metricName + "metric not found");
+        fail(metricName + " metric not found");
     }
 }

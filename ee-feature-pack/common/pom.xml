@@ -2792,6 +2792,15 @@
             </exclusions>
         </dependency>
 
+         <!-- Micrometer -->
+         <dependency><groupId>${project.groupId}</groupId><artifactId>wildfly-micrometer-api</artifactId><exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+         <dependency><groupId>${project.groupId}</groupId><artifactId>wildfly-micrometer</artifactId><exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+         <dependency><groupId>io.micrometer</groupId><artifactId>micrometer-core</artifactId><exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+         <dependency><groupId>io.micrometer</groupId><artifactId>micrometer-registry-prometheus</artifactId><exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+         <dependency><groupId>io.prometheus</groupId><artifactId>simpleclient</artifactId><exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+         <dependency><groupId>io.prometheus</groupId><artifactId>simpleclient_common</artifactId><exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+         <dependency><groupId>org.latencyutils</groupId><artifactId>LatencyUtils</artifactId><exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+         <!-- -->
 
         <!-- OpenTelemetry -->
         <dependency><groupId>io.opentelemetry</groupId><artifactId>opentelemetry-api</artifactId><exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
