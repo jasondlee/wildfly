@@ -2,7 +2,7 @@
 
 <feature-group-spec name="standalone-azure-ha" xmlns="urn:jboss:galleon:feature-group:1.0">
     <feature spec="server-root">
-        <param name="server-root" value="/" />
+        <param name="server-root" value="/"/>
     </feature>
     <feature-group name="interfaces"/>
     <feature spec="interface">
@@ -11,7 +11,7 @@
     </feature>
 
     <feature spec="socket-binding-group">
-        <param name="socket-binding-group" value="standard-sockets" />
+        <param name="socket-binding-group" value="standard-sockets"/>
         <param name="port-offset" value="${jboss.socket.binding.port-offset:0}"/>
         <param name="default-interface" value="public"/>
         <feature-group name="standalone-sockets"/>
@@ -43,7 +43,8 @@
                 </feature>
                 <feature spec="subsystem.jgroups.stack.protocol">
                     <param name="protocol" value="azure.AZURE_PING"/>
-                    <param name="properties" value="{storage_account_name=&quot;${jboss.jgroups.azure_ping.storage_account_name}&quot;,storage_access_key=&quot;${jboss.jgroups.azure_ping.storage_access_key}&quot;,container=&quot;${jboss.jgroups.azure_ping.container}&quot;}"/>
+                    <param name="properties"
+                           value="{storage_account_name=&quot;${jboss.jgroups.azure_ping.storage_account_name}&quot;,storage_access_key=&quot;${jboss.jgroups.azure_ping.storage_access_key}&quot;,container=&quot;${jboss.jgroups.azure_ping.container}&quot;}"/>
                 </feature>
                 <feature spec="subsystem.jgroups.stack.protocol">
                     <param name="protocol" value="MERGE3"/>
@@ -81,7 +82,8 @@
                 </feature>
                 <feature spec="subsystem.jgroups.stack.protocol">
                     <param name="protocol" value="azure.AZURE_PING"/>
-                    <param name="properties" value="{storage_account_name=&quot;${jboss.jgroups.azure_ping.storage_account_name}&quot;,storage_access_key=&quot;${jboss.jgroups.azure_ping.storage_access_key}&quot;,container=&quot;${jboss.jgroups.azure_ping.container}&quot;}"/>
+                    <param name="properties"
+                           value="{storage_account_name=&quot;${jboss.jgroups.azure_ping.storage_account_name}&quot;,storage_access_key=&quot;${jboss.jgroups.azure_ping.storage_access_key}&quot;,container=&quot;${jboss.jgroups.azure_ping.container}&quot;}"/>
                 </feature>
                 <feature spec="subsystem.jgroups.stack.protocol">
                     <param name="protocol" value="MERGE3"/>
@@ -117,5 +119,6 @@
         </feature>
     </feature-group>
     <feature-group name="health"/>
-    <feature-group name="metrics" />
+    <!--    <feature-group name="metrics" />-->
+    <feature-group name="micrometer"/>
 </feature-group-spec>

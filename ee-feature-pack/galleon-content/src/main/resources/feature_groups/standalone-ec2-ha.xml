@@ -2,7 +2,7 @@
 
 <feature-group-spec name="standalone-ec2-ha" xmlns="urn:jboss:galleon:feature-group:1.0">
     <feature spec="server-root">
-        <param name="server-root" value="/" />
+        <param name="server-root" value="/"/>
     </feature>
     <feature-group name="interfaces"/>
     <feature spec="interface">
@@ -11,7 +11,7 @@
     </feature>
 
     <feature spec="socket-binding-group">
-        <param name="socket-binding-group" value="standard-sockets" />
+        <param name="socket-binding-group" value="standard-sockets"/>
         <param name="port-offset" value="${jboss.socket.binding.port-offset:0}"/>
         <param name="default-interface" value="public"/>
         <feature-group name="standalone-sockets"/>
@@ -44,7 +44,8 @@
                 </feature>
                 <feature spec="subsystem.jgroups.stack.protocol">
                     <param name="protocol" value="S3_PING"/>
-                    <param name="properties" value="{access_key=&quot;${jboss.jgroups.s3_ping.access_key}&quot;,secret_access_key=&quot;${jboss.jgroups.s3_ping.secret_access_key}&quot;,location=&quot;${jboss.jgroups.s3_ping.bucket}&quot;}"/>
+                    <param name="properties"
+                           value="{access_key=&quot;${jboss.jgroups.s3_ping.access_key}&quot;,secret_access_key=&quot;${jboss.jgroups.s3_ping.secret_access_key}&quot;,location=&quot;${jboss.jgroups.s3_ping.bucket}&quot;}"/>
                 </feature>
                 <feature spec="subsystem.jgroups.stack.protocol">
                     <param name="protocol" value="MERGE3"/>
@@ -82,7 +83,8 @@
                 </feature>
                 <feature spec="subsystem.jgroups.stack.protocol">
                     <param name="protocol" value="S3_PING"/>
-                    <param name="properties" value="{access_key=&quot;${jboss.jgroups.s3_ping.access_key}&quot;,secret_access_key=&quot;${jboss.jgroups.s3_ping.secret_access_key}&quot;,location=&quot;${jboss.jgroups.s3_ping.bucket}&quot;}"/>
+                    <param name="properties"
+                           value="{access_key=&quot;${jboss.jgroups.s3_ping.access_key}&quot;,secret_access_key=&quot;${jboss.jgroups.s3_ping.secret_access_key}&quot;,location=&quot;${jboss.jgroups.s3_ping.bucket}&quot;}"/>
                 </feature>
                 <feature spec="subsystem.jgroups.stack.protocol">
                     <param name="protocol" value="MERGE3"/>
@@ -117,8 +119,9 @@
             </feature>
         </feature>
     </feature-group>
-   <feature-group name="health"/>
-   <feature-group name="metrics" />
+    <feature-group name="health"/>
+    <!--    <feature-group name="metrics" />-->
+    <feature-group name="micrometer"/>
 
     <!-- <feature-group name="elytron-permissions-workaround"/> -->
 </feature-group-spec>
