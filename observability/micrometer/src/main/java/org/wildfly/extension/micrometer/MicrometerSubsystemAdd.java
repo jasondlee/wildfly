@@ -66,13 +66,14 @@ public class MicrometerSubsystemAdd extends AbstractBoottimeAddStepHandler {
         boolean securityEnabled = MicrometerSubsystemDefinition.SECURITY_ENABLED.resolveModelAttribute(context, model)
                 .asBoolean();
 
-        MicrometerRegistryService.install(context, securityEnabled);
-        MetricsCollectorService.install(context);
-        MicrometerContextService.install(context, securityEnabled);
         // If the MP Metrics module is not installed, we need to install the WF Metrics DPU and initiate a metrics
         // collection. If MP Metrics *is* installed, then we do not need to do either of those things, as that module
         // handles that instead.
         if (!context.getCapabilityServiceSupport().hasCapability("org.wildfly.extension.metrics.scan")) {
+            MicrometerRegistryService.install(context, securityEnabled);
+            MetricsCollectorService.install(context);
+            MicrometerContextService.install(context, securityEnabled);
+
             context.addStep(new AbstractDeploymentChainStep() {
                 @Override
                 public void execute(DeploymentProcessorTarget processorTarget) {
