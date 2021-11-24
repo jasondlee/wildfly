@@ -196,7 +196,8 @@ public class HostExcludesTestCase extends BuildConfigurationTestBase {
         CURRENT(MAJOR, WILDFLY_25_0, null, Arrays.asList(
                 "org.jboss.as.cmp",
                 "org.jboss.as.jaxr",
-                "org.jboss.as.configadmin"
+                "org.jboss.as.configadmin",
+                "org.wildfly.extension.micrometer"
         ));
 
         private final String name;
