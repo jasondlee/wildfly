@@ -59,21 +59,19 @@ public class MicrometerSubsystemAdd extends AbstractBoottimeAddStepHandler {
             throws OperationFailedException {
         super.performBoottime(context, operation, model);
 
-        List<String> exposedSubsystems = MicrometerSubsystemDefinition.EXPOSED_SUBSYSTEMS.unwrap(context, model);
-        boolean exposeAnySubsystem = exposedSubsystems.remove("*");
-        String prefix = MicrometerSubsystemDefinition.PREFIX.resolveModelAttribute(context, model)
-                .asStringOrNull();
-        boolean securityEnabled = MicrometerSubsystemDefinition.SECURITY_ENABLED.resolveModelAttribute(context, model)
-                .asBoolean();
-        MicrometerRegistryService.install(context, securityEnabled);
-        MicrometerCollectorService.install(context);
-        MicrometerContextService.install(context, securityEnabled);
-
         // If the MP Metrics module is not installed, we need to install the WF Metrics DPU and initiate a metrics
         // collection. If MP Metrics *is* installed, then we do not need to do either of those things, as that module
         // handles that instead.
         if (!context.getCapabilityServiceSupport().hasCapability("org.wildfly.extension.metrics.scan")) {
-
+            List<String> exposedSubsystems = MicrometerSubsystemDefinition.EXPOSED_SUBSYSTEMS.unwrap(context, model);
+            boolean exposeAnySubsystem = exposedSubsystems.remove("*") || exposedSubsystems.isEmpty();
+            String prefix = MicrometerSubsystemDefinition.PREFIX.resolveModelAttribute(context, model)
+                    .asStringOrNull();
+            boolean securityEnabled = MicrometerSubsystemDefinition.SECURITY_ENABLED.resolveModelAttribute(context, model)
+                    .asBoolean();
+            MicrometerRegistryService.install(context, securityEnabled);
+            MicrometerCollectorService.install(context);
+            MicrometerContextService.install(context, securityEnabled);
 
             context.addStep(new AbstractDeploymentChainStep() {
                 @Override
