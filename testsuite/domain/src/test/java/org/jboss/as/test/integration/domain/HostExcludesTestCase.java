@@ -193,11 +193,10 @@ public class HostExcludesTestCase extends BuildConfigurationTestBase {
         )),
         // If an extension is added to this enum, also check if it is supplied only by wildfly-galleon-pack. If so, add it also
         // to the internal mpExtensions Set defined on this class.
-        CURRENT(MAJOR, WILDFLY_25_0, null, Arrays.asList(
+        CURRENT(MAJOR, WILDFLY_25_0, Arrays.asList("org.wildfly.extension.micrometer"), Arrays.asList(
                 "org.jboss.as.cmp",
                 "org.jboss.as.jaxr",
-                "org.jboss.as.configadmin",
-                "org.wildfly.extension.micrometer"
+                "org.jboss.as.configadmin"
         ));
 
         private final String name;
@@ -335,7 +334,7 @@ public class HostExcludesTestCase extends BuildConfigurationTestBase {
             Set<String> extensionsAdded = diff.apply(current, availableExtensions);
             Set<String> extensionsRemoved = diff.apply(availableExtensions, current);
             fail(String.format("The following extensions %s have been removed on the current release. Remove them on ExtensionConf.CURRENT object defined in this test. " +
-                    "The following extensions %s have been added on the current release. Add them to ExtensionConf.CURRENT object defined in this test.", extensionsAdded, extensionsRemoved));
+                    "The following extensions %s have been added on the current release. Add them to ExtensionConf.CURRENT object defined in this test.", extensionsRemoved, extensionsAdded));
         }
 
         // If the ExtensionConf.CURRENT has extensions removed / added and the version it represents no longer
