@@ -31,7 +31,7 @@ import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.service.ServiceName;
-import org.wildfly.extension.micrometer.metrics.MetricCollector;
+import org.wildfly.extension.micrometer.metrics.MicrometerCollector;
 import org.wildfly.extension.micrometer.metrics.WildFlyRegistry;
 
 public class MicrometerSubsystemDefinition extends PersistentResourceDefinition {
@@ -47,7 +47,7 @@ public class MicrometerSubsystemDefinition extends PersistentResourceDefinition 
     private static final String METRICS_HTTP_CONTEXT_CAPABILITY = "org.wildfly.extension.metrics.http-context";
 
     private static final RuntimeCapability<Void> MICROMETER_COLLECTOR_RUNTIME_CAPABILITY =
-            RuntimeCapability.Builder.of(MICROMETER_MODULE + ".wildfly-collector", MetricCollector.class)
+            RuntimeCapability.Builder.of(MICROMETER_MODULE + ".wildfly-collector", MicrometerCollector.class)
                     .addRequirements(CLIENT_FACTORY_CAPABILITY, MANAGEMENT_EXECUTOR, PROCESS_STATE_NOTIFIER)
                     .build();
     public static final RuntimeCapability<Void> MICROMETER_REGISTRY_RUNTIME_CAPABILITY =
@@ -77,7 +77,6 @@ public class MicrometerSubsystemDefinition extends PersistentResourceDefinition 
 
     static final StringListAttributeDefinition EXPOSED_SUBSYSTEMS =
             new StringListAttributeDefinition.Builder("exposed-subsystems")
-                    .setDefaultValue(new ModelNode().add("*"))
                     .setRequired(false)
                     .setRestartAllServices()
                     .build();

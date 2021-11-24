@@ -31,7 +31,7 @@ import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StopContext;
 import org.wildfly.extension.micrometer.api.MicrometerCdiExtension;
-import org.wildfly.extension.micrometer.metrics.MetricCollector;
+import org.wildfly.extension.micrometer.metrics.MicrometerCollector;
 import org.wildfly.extension.micrometer.metrics.WildFlyRegistry;
 import org.wildfly.security.manager.WildFlySecurityManager;
 
@@ -40,7 +40,7 @@ public class MicrometerDeploymentService implements Service {
     private final ManagementResourceRegistration managementResourceRegistration;
     private final PathAddress deploymentAddress;
     private final DeploymentUnit deploymentUnit;
-    private final Supplier<MetricCollector> metricCollector;
+    private final Supplier<MicrometerCollector> metricCollector;
     private final Supplier<Executor> managementExecutor;
     private final Supplier<WildFlyRegistry> registrySupplier;
     private final boolean exposeAnySubsystem;
@@ -79,7 +79,7 @@ public class MicrometerDeploymentService implements Service {
         PathAddress deploymentAddress = createDeploymentAddressPrefix(deploymentUnit);
 
         ServiceBuilder<?> sb = serviceTarget.addService(deploymentUnit.getServiceName().append(".micrometer-metrics"));
-        Supplier<MetricCollector> metricCollectorSupplier = sb.requires(MICROMETER_COLLECTOR);
+        Supplier<MicrometerCollector> metricCollectorSupplier = sb.requires(MICROMETER_COLLECTOR);
         Supplier<Executor> managementExecutorSupplier = sb.requires(ServerService.EXECUTOR_CAPABILITY.getCapabilityServiceName());
         Supplier<WildFlyRegistry> registriesSupplier = sb.requires(MICROMETER_REGISTRY_RUNTIME_CAPABILITY.getCapabilityServiceName());
 
@@ -98,7 +98,7 @@ public class MicrometerDeploymentService implements Service {
                                        ManagementResourceRegistration managementResourceRegistration,
                                        PathAddress deploymentAddress,
                                        DeploymentUnit deploymentUnit,
-                                       Supplier<MetricCollector> metricCollectorSupplier,
+                                       Supplier<MicrometerCollector> metricCollectorSupplier,
                                        Supplier<Executor> managementExecutorSupplier,
                                        Supplier<WildFlyRegistry> registrySupplier,
                                        boolean exposeAnySubsystem,

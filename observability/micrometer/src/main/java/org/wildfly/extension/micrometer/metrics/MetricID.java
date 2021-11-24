@@ -28,26 +28,16 @@ import java.util.TreeMap;
 
 public class MetricID implements Comparable<MetricID> {
     private String metricName;
-    private WildFlyMetricMetadata.MetricTag[] metricTags;
     // keep a map of tags to ensure that the identity of the metrics does not differ if the
     // tags are not in the same order in the array
     private final Map<String, String> tags = new TreeMap<>();
 
     public MetricID(String metricName, WildFlyMetricMetadata.MetricTag[] tags) {
         this.metricName = metricName;
-        this.metricTags = tags;
         for (WildFlyMetricMetadata.MetricTag tag : tags) {
             this.tags.put(tag.getKey(), tag.getValue());
         }
     }
-
-//    public String getMetricName() {
-//        return metricName;
-//    }
-//
-//    public WildFlyMetricMetadata.MetricTag[] getMetricTags() {
-//        return metricTags;
-//    }
 
     @Override
     public boolean equals(Object o) {

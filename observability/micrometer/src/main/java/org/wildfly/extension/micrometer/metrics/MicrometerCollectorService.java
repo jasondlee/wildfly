@@ -43,15 +43,15 @@ import org.jboss.msc.service.StopContext;
 /**
  * Service to create a metric collector
  */
-public class MetricsCollectorService implements Service<MetricCollector> {
+public class MicrometerCollectorService implements Service<MicrometerCollector> {
 
     private final Supplier<ModelControllerClientFactory> modelControllerClientFactory;
     private final Supplier<Executor> managementExecutor;
     private final Supplier<ProcessStateNotifier> processStateNotifier;
     private final Supplier<WildFlyRegistry> registrySupplier;
-    private Consumer<MetricCollector> metricCollectorConsumer;
+    private Consumer<MicrometerCollector> metricCollectorConsumer;
 
-    private MetricCollector metricCollector;
+    private MicrometerCollector micrometerCollector;
     private LocalModelControllerClient modelControllerClient;
 
     public static void install(OperationContext context) {
@@ -63,18 +63,18 @@ public class MetricsCollectorService implements Service<MetricCollector> {
         Supplier<ProcessStateNotifier> processStateNotifier = serviceBuilder.requires(
                 context.getCapabilityServiceName(PROCESS_STATE_NOTIFIER, ProcessStateNotifier.class));
         Supplier<WildFlyRegistry> registrySupplier = serviceBuilder.requires(MICROMETER_REGISTRY_RUNTIME_CAPABILITY.getCapabilityServiceName());
-        Consumer<MetricCollector> metricCollectorConsumer = serviceBuilder.provides(MICROMETER_COLLECTOR);
-        MetricsCollectorService service = new MetricsCollectorService(modelControllerClientFactory, managementExecutor,
+        Consumer<MicrometerCollector> metricCollectorConsumer = serviceBuilder.provides(MICROMETER_COLLECTOR);
+        MicrometerCollectorService service = new MicrometerCollectorService(modelControllerClientFactory, managementExecutor,
                 processStateNotifier, registrySupplier, metricCollectorConsumer);
         serviceBuilder.setInstance(service)
                 .install();
     }
 
-    MetricsCollectorService(Supplier<ModelControllerClientFactory> modelControllerClientFactory,
-                            Supplier<Executor> managementExecutor,
-                            Supplier<ProcessStateNotifier> processStateNotifier,
-                            Supplier<WildFlyRegistry> registrySupplier,
-                            Consumer<MetricCollector> metricCollectorConsumer) {
+    MicrometerCollectorService(Supplier<ModelControllerClientFactory> modelControllerClientFactory,
+                               Supplier<Executor> managementExecutor,
+                               Supplier<ProcessStateNotifier> processStateNotifier,
+                               Supplier<WildFlyRegistry> registrySupplier,
+                               Consumer<MicrometerCollector> metricCollectorConsumer) {
         this.modelControllerClientFactory = modelControllerClientFactory;
         this.managementExecutor = managementExecutor;
         this.processStateNotifier = processStateNotifier;
@@ -87,22 +87,22 @@ public class MetricsCollectorService implements Service<MetricCollector> {
         // [WFLY-11933] if RBAC is enabled, the local client does not have enough privileges to read metrics
         modelControllerClient = modelControllerClientFactory.get().createClient(managementExecutor.get());
 
-        metricCollector = new MetricCollector(modelControllerClient, processStateNotifier.get(),
+        micrometerCollector = new MicrometerCollector(modelControllerClient, processStateNotifier.get(),
                 registrySupplier.get());
 
-        metricCollectorConsumer.accept(metricCollector);
+        metricCollectorConsumer.accept(micrometerCollector);
     }
 
     @Override
     public void stop(StopContext context) {
         metricCollectorConsumer.accept(null);
-        metricCollector = null;
+        micrometerCollector = null;
 
         modelControllerClient.close();
     }
 
     @Override
-    public MetricCollector getValue() throws IllegalStateException, IllegalArgumentException {
-        return metricCollector;
+    public MicrometerCollector getValue() throws IllegalStateException, IllegalArgumentException {
+        return micrometerCollector;
     }
 }

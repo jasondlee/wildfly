@@ -10,7 +10,7 @@ import org.jboss.msc.Service;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StopContext;
-import org.wildfly.extension.micrometer.jmx.JmxMetricCollector;
+import org.wildfly.extension.micrometer.jmx.JmxMicrometerCollector;
 import org.wildfly.extension.micrometer.metrics.WildFlyRegistry;
 
 public class MicrometerRegistryService implements Service {
@@ -36,7 +36,7 @@ public class MicrometerRegistryService implements Service {
 
         try {
             // register metrics from JMX MBeans for base metrics
-            new JmxMetricCollector(registry).init();
+            new JmxMicrometerCollector(registry).init();
         } catch (IOException e) {
             throw MicrometerExtensionLogger.MICROMETER_LOGGER.failedInitializeJMXRegistrar(e);
         }

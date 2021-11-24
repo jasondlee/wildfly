@@ -48,14 +48,14 @@ import org.jboss.as.controller.registry.Resource;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 
-public class MetricCollector {
+public class MicrometerCollector {
     private final LocalModelControllerClient modelControllerClient;
     private final ProcessStateNotifier processStateNotifier;
     private final WildFlyRegistry micrometerRegistry;
 
-    public MetricCollector(LocalModelControllerClient modelControllerClient,
-                           ProcessStateNotifier processStateNotifier,
-                           WildFlyRegistry micrometerRegistry) {
+    public MicrometerCollector(LocalModelControllerClient modelControllerClient,
+                               ProcessStateNotifier processStateNotifier,
+                               WildFlyRegistry micrometerRegistry) {
         this.modelControllerClient = modelControllerClient;
         this.processStateNotifier = processStateNotifier;
         this.micrometerRegistry = micrometerRegistry;

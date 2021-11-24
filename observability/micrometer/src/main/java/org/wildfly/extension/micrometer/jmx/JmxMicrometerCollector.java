@@ -51,11 +51,11 @@ import org.wildfly.extension.micrometer.metrics.MetricMetadata;
 import org.wildfly.extension.micrometer.metrics.WildFlyMetric;
 import org.wildfly.extension.micrometer.metrics.WildFlyRegistry;
 
-public class JmxMetricCollector {
+public class JmxMicrometerCollector {
     private final MBeanServer mbs;
     private WildFlyRegistry registry;
 
-    public JmxMetricCollector(WildFlyRegistry registry) {
+    public JmxMicrometerCollector(WildFlyRegistry registry) {
         this.registry = registry;
         this.mbs = ManagementFactory.getPlatformMBeanServer();
     }
