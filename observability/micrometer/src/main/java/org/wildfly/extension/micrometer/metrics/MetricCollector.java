@@ -69,8 +69,6 @@ public class MetricCollector {
                                                     List<String> exposedSubsystems,
                                                     String prefix,
                                                     String applicationName) {
-        System.out.println("\n\n\n\n\n\n\n\n\n\n***** Collecting metrics *****");
-        System.out.println("***** micrometerRegistry = " + micrometerRegistry + "*****\n\n\n\n\n\n\n\n\n\n");
         MetricRegistration registration = new MetricRegistration(micrometerRegistry);
 
         queueMetricRegistration(resource, managementResourceRegistration, EMPTY_ADDRESS, resourceAddressResolver,

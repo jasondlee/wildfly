@@ -16,20 +16,7 @@ import org.wildfly.extension.micrometer.MicrometerExtensionLogger;
 public class WildFlyRegistry extends PrometheusMeterRegistry {
     public WildFlyRegistry() {
         super(PrometheusConfig.DEFAULT);
-        System.out.println("\n\n\n\n\n\n\n\n\n\n***** Creating new WildFlyRegistry *****\n\n\n\n\n\n\n\n\n\n");
         this.throwExceptionOnRegistrationFailure();
-
-//        Stream.of(
-//                        new ClassLoaderMetrics(),
-//                        new JvmGcMetrics(),
-//                        new JvmInfoMetrics(),
-//                        new JvmHeapPressureMetrics(),
-//                        new JvmCompilationMetrics(),
-//                        new JvmMemoryMetrics(),
-//                        new JvmThreadMetrics(),
-//                        new ProcessorMetrics(),
-//                        new UptimeMetrics())
-//                .forEach(m -> m.bindTo(this));
     }
 
     public Meter addMeter(WildFlyMetric metric, MetricMetadata metadata) {
