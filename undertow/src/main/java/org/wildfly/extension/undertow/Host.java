@@ -94,6 +94,7 @@ public class Host implements Service<Host>, FilterLocation {
     private final int defaultResponseCode;
     private volatile HttpHandler rootHandler = null;
     private volatile AccessLogService  accessLogService;
+    private volatile Function<HttpHandler, HttpHandler> activeRequestTrackerHandler;
     private volatile GateHandlerWrapper gateHandlerWrapper;
     private volatile Function<HttpHandler, HttpHandler> accessLogHttpHandler;
 
@@ -188,6 +189,7 @@ public class Host implements Service<Host>, FilterLocation {
         AccessLogService logService = accessLogService;
         HttpHandler rootHandler = pathHandler;
         final Function<HttpHandler, HttpHandler> accessLogHttpHandler = this.accessLogHttpHandler;
+        final Function<HttpHandler, HttpHandler> activeRequestTrackerHandler = this.activeRequestTrackerHandler;
 
         ArrayList<UndertowFilter> filters = new ArrayList<>(this.filters);
 
@@ -200,6 +202,9 @@ public class Host implements Service<Host>, FilterLocation {
         rootHandler = LocationService.configureHandlerChain(rootHandler, filters);
         if (logService != null) {
             rootHandler = logService.configureAccessLogHandler(rootHandler);
+        }
+        if (activeRequestTrackerHandler != null) {
+            rootHandler = activeRequestTrackerHandler.apply(rootHandler);
         }
         if (accessLogHttpHandler != null) {
             rootHandler = accessLogHttpHandler.apply(rootHandler);
@@ -245,6 +250,11 @@ public class Host implements Service<Host>, FilterLocation {
 
     void setAccessLogService(AccessLogService service) {
         this.accessLogService = service;
+        rootHandler = null;
+    }
+
+    void setActiveRequestTrackerHandler(final Function<HttpHandler, HttpHandler> activeRequestTrackerHandler) {
+        this.activeRequestTrackerHandler = activeRequestTrackerHandler;
         rootHandler = null;
     }
 

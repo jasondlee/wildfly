@@ -2,6 +2,7 @@
 <feature-group-spec name="undertow-base" xmlns="urn:jboss:galleon:feature-group:1.0">
     <feature spec="subsystem.undertow">
         <param name="statistics-enabled" value="${wildfly.undertow.statistics-enabled:${wildfly.statistics-enabled:false}}" />
+        <param name="active-request-tracking-enabled" value="${wildfly.undertow.active-request-tracking-enabled:${wildfly.active-request-tracking-enabled:false}}" />
 
         <feature spec="subsystem.undertow.buffer-cache">
             <param name="buffer-cache" value="default" />

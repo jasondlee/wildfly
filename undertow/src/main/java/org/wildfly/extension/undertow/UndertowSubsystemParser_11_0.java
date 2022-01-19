@@ -63,7 +63,8 @@ public class UndertowSubsystemParser_11_0 extends PersistentResourceXMLParser {
                         UndertowRootDefinition.DEFAULT_SERVLET_CONTAINER,
                         UndertowRootDefinition.INSTANCE_ID,
                         UndertowRootDefinition.DEFAULT_SECURITY_DOMAIN,
-                        UndertowRootDefinition.STATISTICS_ENABLED)
+                        UndertowRootDefinition.STATISTICS_ENABLED,
+                        UndertowRootDefinition.ACTIVE_REQUEST_TRACKING_ENABLED)
                 .addChild(
                         builder(ByteBufferPoolDefinition.INSTANCE.getPathElement())
                                 .addAttributes(ByteBufferPoolDefinition.DIRECT, ByteBufferPoolDefinition.BUFFER_SIZE, ByteBufferPoolDefinition.MAX_POOL_SIZE, ByteBufferPoolDefinition.THREAD_LOCAL_CACHE_SIZE, ByteBufferPoolDefinition.LEAK_DETECTION_PERCENT)

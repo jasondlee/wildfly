@@ -66,6 +66,7 @@ public class UndertowExtension implements Extension {
     public static final PathElement PATH_LOCATION = PathElement.pathElement(Constants.LOCATION);
     public static final PathElement SERVER_PATH = PathElement.pathElement(Constants.SERVER);
     public static final PathElement PATH_ACCESS_LOG = PathElement.pathElement(Constants.SETTING, Constants.ACCESS_LOG);
+    public static final PathElement PATH_ACTIVE_REQUEST_TRACKER = PathElement.pathElement(Constants.SETTING, Constants.ACTIVE_REQUEST_TRACKER);
     public static final PathElement PATH_SSO = PathElement.pathElement(Constants.SETTING, Constants.SINGLE_SIGN_ON);
     public static final PathElement BALANCER = PathElement.pathElement(Constants.BALANCER);
     public static final PathElement CONTEXT = PathElement.pathElement(Constants.CONTEXT);

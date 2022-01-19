@@ -99,6 +99,12 @@ class UndertowRootDefinition extends PersistentResourceDefinition {
                     .setAllowExpression(true)
                     .setDefaultValue(ModelNode.FALSE)
                     .build();
+    protected static final SimpleAttributeDefinition ACTIVE_REQUEST_TRACKING_ENABLED =
+            new SimpleAttributeDefinitionBuilder(Constants.ACTIVE_REQUEST_TRACKING_ENABLED, ModelType.BOOLEAN, true)
+                    .setRestartAllServices()
+                    .setAllowExpression(true)
+                    .setDefaultValue(ModelNode.FALSE)
+                    .build();
     protected static final SimpleAttributeDefinition DEFAULT_SECURITY_DOMAIN =
             new SimpleAttributeDefinitionBuilder(Constants.DEFAULT_SECURITY_DOMAIN, ModelType.STRING, true)
                     .setAllowExpression(true)
@@ -110,7 +116,7 @@ class UndertowRootDefinition extends PersistentResourceDefinition {
 
     static final ApplicationSecurityDomainDefinition APPLICATION_SECURITY_DOMAIN = ApplicationSecurityDomainDefinition.INSTANCE;
     static final AttributeDefinition[] ATTRIBUTES = { DEFAULT_VIRTUAL_HOST, DEFAULT_SERVLET_CONTAINER, DEFAULT_SERVER, INSTANCE_ID,
-            OBFUSCATE_SESSION_ROUTE, STATISTICS_ENABLED, DEFAULT_SECURITY_DOMAIN };
+            OBFUSCATE_SESSION_ROUTE, STATISTICS_ENABLED, ACTIVE_REQUEST_TRACKING_ENABLED, DEFAULT_SECURITY_DOMAIN };
     static final PersistentResourceDefinition[] CHILDREN = {
             ByteBufferPoolDefinition.INSTANCE,
             BufferCacheDefinition.INSTANCE,

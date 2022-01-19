@@ -56,6 +56,11 @@
             <xs:documentation>Whether statistics are to be gathered for undertow subsystem.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="active-request-tracking-enabled" type="xs:boolean" default="false">
+          <xs:annotation>
+            <xs:documentation>Whether statistics are to be gathered for active requests.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
     </xs:complexType>
     <xs:complexType name="serverType">
         <xs:sequence>
@@ -304,6 +309,7 @@
             <xs:element name="location" type="locationType" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="access-log" type="accessLogType" maxOccurs="1" minOccurs="0"/>
             <xs:element name="console-access-log" type="consoleAccessLogType" minOccurs="0"/>
+            <xs:element name="active-request-tracker" type="activeRequestTrackerType" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="filter-ref" type="filter-refType" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="single-sign-on" minOccurs="0" maxOccurs="1" type="singleSignOnType"/>
             <xs:element name="http-invoker" minOccurs="0" maxOccurs="1" type="http-invokerType"/>
@@ -413,6 +419,9 @@
         </xs:sequence>
         <xs:attribute name="name" use="required" type="xs:string"/>
         <xs:attribute name="handler" use="required" type="xs:string"/>
+    </xs:complexType>
+    <xs:complexType name="activeRequestTrackerType">
+        <xs:attribute name="predicate" use="optional" type="xs:string" />
     </xs:complexType>
     <xs:complexType name="accessLogType">
         <xs:attribute name="pattern" use="optional" type="xs:string" default="common"/>

@@ -102,6 +102,7 @@ class UndertowSubsystemAdd extends AbstractBoottimeAddStepHandler {
         final String defaultContainer = UndertowRootDefinition.DEFAULT_SERVLET_CONTAINER.resolveModelAttribute(context, model).asString();
         final String defaultServer = UndertowRootDefinition.DEFAULT_SERVER.resolveModelAttribute(context, model).asString();
         final boolean stats = UndertowRootDefinition.STATISTICS_ENABLED.resolveModelAttribute(context, model).asBoolean();
+        final boolean activeReqTracking = UndertowRootDefinition.ACTIVE_REQUEST_TRACKING_ENABLED.resolveModelAttribute(context, model).asBoolean();
         final String defaultSecurityDomain = UndertowRootDefinition.DEFAULT_SECURITY_DOMAIN.resolveModelAttribute(context, model).asString();
 
         final ModelNode instanceIdModel = UndertowRootDefinition.INSTANCE_ID.resolveModelAttribute(context, model);
@@ -113,7 +114,7 @@ class UndertowSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
         final CapabilityServiceBuilder<?> csb = context.getCapabilityServiceTarget().addCapability(UndertowRootDefinition.UNDERTOW_CAPABILITY);
         final Consumer<UndertowService> usConsumer = csb.provides(UndertowRootDefinition.UNDERTOW_CAPABILITY, UndertowService.UNDERTOW);
-        csb.setInstance(new UndertowService(usConsumer, defaultContainer, defaultServer, defaultVirtualHost, instanceId, obfuscateSessionRoute, stats));
+        csb.setInstance(new UndertowService(usConsumer, defaultContainer, defaultServer, defaultVirtualHost, instanceId, obfuscateSessionRoute, stats, activeReqTracking));
         csb.install();
 
         context.addStep(new AbstractDeploymentChainStep() {
