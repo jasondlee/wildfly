@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
 
+import io.undertow.Version;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.ServiceName;
@@ -37,8 +38,6 @@ import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.wildfly.extension.undertow.logging.UndertowLogger;
-
-import io.undertow.Version;
 
 /**
  * @author <a href="mailto:tomaz.cerar@redhat.com">Tomaz Cerar</a> (c) 2013 Red Hat Inc.
@@ -84,12 +83,15 @@ public class UndertowService implements Service<UndertowService> {
     private final String instanceId;
     private final boolean obfuscateSessionRoute;
     private volatile boolean statisticsEnabled;
+    private volatile boolean activeRequestTrackingEnabled;
     private final Set<Consumer<Boolean>> statisticsChangeListenters = new HashSet<>();
     private final Consumer<UndertowService> serviceConsumer;
 
     protected UndertowService(final Consumer<UndertowService> serviceConsumer, final String defaultContainer,
                               final String defaultServer, final String defaultVirtualHost,
-                              final String instanceId, final boolean obfuscateSessionRoute, final boolean statisticsEnabled) {
+                              final String instanceId, final boolean obfuscateSessionRoute,
+                              final boolean statisticsEnabled,
+                              final boolean activeRequestTrackingEnabled) {
         this.serviceConsumer = serviceConsumer;
         this.defaultContainer = defaultContainer;
         this.defaultServer = defaultServer;
@@ -97,6 +99,7 @@ public class UndertowService implements Service<UndertowService> {
         this.instanceId = instanceId;
         this.obfuscateSessionRoute = obfuscateSessionRoute;
         this.statisticsEnabled = statisticsEnabled;
+        this.activeRequestTrackingEnabled = activeRequestTrackingEnabled;
     }
 
     public static ServiceName deploymentServiceName(ServiceName deploymentServiceName) {
@@ -127,6 +130,10 @@ public class UndertowService implements Service<UndertowService> {
 
     public static ServiceName accessLogServiceName(final String server, final String virtualHost) {
         return virtualHostName(server, virtualHost).append(Constants.ACCESS_LOG);
+    }
+
+    public static ServiceName activeRequestTrackingServiceName(final String server, final String virtualHost) {
+        return virtualHostName(server, virtualHost).append(Constants.ACTIVE_REQUEST_TRACKER);
     }
 
     public static ServiceName ssoServiceName(final String server, final String virtualHost) {
@@ -251,6 +258,10 @@ public class UndertowService implements Service<UndertowService> {
 
     public boolean isStatisticsEnabled() {
         return statisticsEnabled;
+    }
+
+    public boolean isActiveRequestTrackingEnabled() {
+        return activeRequestTrackingEnabled;
     }
 
     public synchronized void setStatisticsEnabled(boolean statisticsEnabled) {

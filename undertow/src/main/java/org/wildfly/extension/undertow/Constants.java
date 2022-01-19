@@ -28,6 +28,7 @@ package org.wildfly.extension.undertow;
 
 public interface Constants {
     String ACCESS_LOG = "access-log";
+    String ACTIVE_REQUEST_TRACKER = "active-request-tracker";
     String CONSOLE_ACCESS_LOG = "console-access-log";
     String AJP_LISTENER = "ajp-listener";
     String BUFFER_CACHE = "buffer-cache";
@@ -225,6 +226,7 @@ public interface Constants {
     String CRAWLER_SESSION_MANAGEMENT = "crawler-session-management";
     String MAX_AJP_PACKET_SIZE = "max-ajp-packet-size";
     String STATISTICS_ENABLED = "statistics-enabled";
+    String ACTIVE_REQUEST_TRACKING_ENABLED = "active-request-tracking-enabled";
     String DEFAULT_SECURITY_DOMAIN = "default-security-domain";
     String DISABLE_FILE_WATCH_SERVICE = "disable-file-watch-service";
     String DISABLE_SESSION_ID_REUSE = "disable-session-id-reuse";

@@ -37,8 +37,10 @@ import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.ProcessType;
-import org.jboss.as.controller.registry.Resource;
 import org.jboss.as.controller.capability.RuntimeCapability;
+import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
+import org.jboss.as.controller.operations.common.Util;
+import org.jboss.as.controller.registry.Resource;
 import org.jboss.as.server.mgmt.UndertowHttpManagementService;
 import org.jboss.as.server.mgmt.domain.HttpManagement;
 import org.jboss.as.server.suspend.SuspendController;
@@ -50,6 +52,7 @@ import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.wildfly.extension.requestcontroller.RequestController;
 import org.wildfly.extension.undertow.deployment.DefaultDeploymentMappingProvider;
+import org.wildfly.extension.undertow.logging.UndertowLogger;
 
 /**
  * @author <a href="mailto:tomaz.cerar@redhat.com">Tomaz Cerar</a> (c) 2013 Red Hat Inc.
@@ -70,6 +73,30 @@ final class HostAdd extends AbstractAddStepHandler {
         String ourCap = HOST_CAPABILITY.getDynamicName(context.getCurrentAddress());
         String serverCap = SERVER_CAPABILITY.getDynamicName(context.getCurrentAddress().getParent());
         context.registerAdditionalCapabilityRequirement(serverCap, ourCap, null);
+    }
+
+    @Override
+    public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
+        super.execute(context, operation);
+
+        final ModelNode subsystemModel = Resource.Tools.readModel(context
+                .readResourceFromRoot(context.getCurrentAddress().getParent().getParent(), false), 0);
+        final boolean statisticsEnabled = UndertowRootDefinition.STATISTICS_ENABLED
+                .resolveModelAttribute(context, subsystemModel).asBoolean();
+        final boolean activeTrackingEnabled = UndertowRootDefinition.ACTIVE_REQUEST_TRACKING_ENABLED
+                .resolveModelAttribute(context, subsystemModel).asBoolean();
+
+        if (activeTrackingEnabled) {
+            if (statisticsEnabled) {
+                context.addStep(Util.createAddOperation(context.getCurrentAddress()
+                                .append(Constants.SETTING, Constants.ACTIVE_REQUEST_TRACKER)),
+                        (stepContext, operation1) -> stepContext.getResourceRegistration()
+                                .getOperationHandler(PathAddress.EMPTY_ADDRESS, ModelDescriptionConstants.ADD)
+                                .execute(stepContext, operation1), OperationContext.Stage.MODEL);
+            } else {
+                UndertowLogger.ROOT_LOGGER.cannotEnableActiveRequestTracking();
+            }
+        }
     }
 
     @Override

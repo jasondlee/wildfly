@@ -29,7 +29,7 @@ import java.util.function.Consumer;
 public class TestUndertowService extends UndertowService {
 
     public TestUndertowService(final Consumer<UndertowService> serviceConsumer, String defaultContainer, String defaultServer, String defaultVirtualHost, String instanceId, boolean obfuscateRoute, Server server) {
-    super(serviceConsumer, defaultContainer, defaultServer, defaultVirtualHost, instanceId, obfuscateRoute, true);
+    super(serviceConsumer, defaultContainer, defaultServer, defaultVirtualHost, instanceId, obfuscateRoute, true, true);
         this.registerServer(server);
     }
 }

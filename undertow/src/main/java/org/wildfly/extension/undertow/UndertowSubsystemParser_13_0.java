@@ -65,7 +65,8 @@ public class UndertowSubsystemParser_13_0 extends PersistentResourceXMLParser {
                         UndertowRootDefinition.INSTANCE_ID,
                         UndertowRootDefinition.OBFUSCATE_SESSION_ROUTE,
                         UndertowRootDefinition.DEFAULT_SECURITY_DOMAIN,
-                        UndertowRootDefinition.STATISTICS_ENABLED)
+                        UndertowRootDefinition.STATISTICS_ENABLED,
+                        UndertowRootDefinition.ACTIVE_REQUEST_TRACKING_ENABLED)
                 .addChild(
                         builder(ByteBufferPoolDefinition.INSTANCE.getPathElement())
                                 .addAttributes(ByteBufferPoolDefinition.DIRECT, ByteBufferPoolDefinition.BUFFER_SIZE, ByteBufferPoolDefinition.MAX_POOL_SIZE, ByteBufferPoolDefinition.THREAD_LOCAL_CACHE_SIZE, ByteBufferPoolDefinition.LEAK_DETECTION_PERCENT)
@@ -135,28 +136,33 @@ public class UndertowSubsystemParser_13_0 extends PersistentResourceXMLParser {
                                                                 .addAttributes(LocationDefinition.HANDLER)
                                                                 .addChild(filterRefBuilder())
                                                 ).addChild(
-                                                builder(AccessLogDefinition.INSTANCE.getPathElement())
-                                                        .addAttributes(
-                                                                AccessLogDefinition.PATTERN,
-                                                                AccessLogDefinition.WORKER,
-                                                                AccessLogDefinition.DIRECTORY,
-                                                                AccessLogDefinition.RELATIVE_TO,
-                                                                AccessLogDefinition.PREFIX,
-                                                                AccessLogDefinition.SUFFIX,
-                                                                AccessLogDefinition.ROTATE,
-                                                                AccessLogDefinition.USE_SERVER_LOG,
-                                                                AccessLogDefinition.EXTENDED,
-                                                                AccessLogDefinition.PREDICATE)
-                                        ).addChild(
-                                                builder(ConsoleAccessLogDefinition.INSTANCE.getPathElement())
-                                                    .addAttributes(
-                                                            ExchangeAttributeDefinitions.ATTRIBUTES,
-                                                            ConsoleAccessLogDefinition.INCLUDE_HOST_NAME,
-                                                            AccessLogDefinition.PATTERN,
-                                                            AccessLogDefinition.WORKER,
-                                                            ConsoleAccessLogDefinition.METADATA,
-                                                            AccessLogDefinition.PREDICATE
-                                                    )
+                                                        builder(AccessLogDefinition.INSTANCE.getPathElement())
+                                                                .addAttributes(
+                                                                        AccessLogDefinition.PATTERN,
+                                                                        AccessLogDefinition.WORKER,
+                                                                        AccessLogDefinition.DIRECTORY,
+                                                                        AccessLogDefinition.RELATIVE_TO,
+                                                                        AccessLogDefinition.PREFIX,
+                                                                        AccessLogDefinition.SUFFIX,
+                                                                        AccessLogDefinition.ROTATE,
+                                                                        AccessLogDefinition.USE_SERVER_LOG,
+                                                                        AccessLogDefinition.EXTENDED,
+                                                                        AccessLogDefinition.PREDICATE)
+                                                ).addChild(
+                                                        builder(ConsoleAccessLogDefinition.INSTANCE.getPathElement())
+                                                                .addAttributes(
+                                                                        ExchangeAttributeDefinitions.ATTRIBUTES,
+                                                                        ConsoleAccessLogDefinition.INCLUDE_HOST_NAME,
+                                                                        AccessLogDefinition.PATTERN,
+                                                                        AccessLogDefinition.WORKER,
+                                                                        ConsoleAccessLogDefinition.METADATA,
+                                                                        AccessLogDefinition.PREDICATE
+                                                                )
+                                                ).addChild(
+                                                        builder(ActiveRequestTrackerDefinition.INSTANCE.getPathElement())
+                                                                .addAttributes(
+                                                                        ActiveRequestTrackerDefinition.PREDICATE
+                                                                )
                                         ).addChild(filterRefBuilder())
                                                 .addChild(
                                                     builder(UndertowExtension.PATH_SSO)
