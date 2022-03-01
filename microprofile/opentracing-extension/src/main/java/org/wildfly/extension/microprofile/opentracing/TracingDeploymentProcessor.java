@@ -160,7 +160,8 @@ public class TracingDeploymentProcessor implements DeploymentUnitProcessor {
         }
         ParamValueMetaData restEasyDynamicFeature = getResteasyProvidersParam(jbossWebMetaData);
         if (restEasyDynamicFeature.getParamValue() != null && !restEasyDynamicFeature.getParamValue().trim().isEmpty()) {
-            restEasyDynamicFeature.setParamValue(restEasyDynamicFeature.getParamValue() + ",org.wildfly.microprofile.opentracing.smallrye.TracerDynamicFeature");
+            restEasyDynamicFeature.setParamValue(restEasyDynamicFeature.getParamValue() +
+                    ",org.wildfly.microprofile.opentracing.smallrye.TracerDynamicFeature");
         } else {
             restEasyDynamicFeature.setParamValue("org.wildfly.microprofile.opentracing.smallrye.TracerDynamicFeature");
         }

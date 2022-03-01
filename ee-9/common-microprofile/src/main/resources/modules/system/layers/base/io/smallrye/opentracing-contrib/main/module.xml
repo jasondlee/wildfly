@@ -34,9 +34,11 @@
 
         <module name="io.opentracing.opentracing-api"/>
         <module name="io.opentracing.opentracing-noop"/>
+        <module name="io.opentracing.opentracing-util"/>
         <module name="io.smallrye.config"/>
 
-        <module name="org.eclipse.microprofile.opentracing"/>
         <module name="org.eclipse.microprofile.config.api"/>
+        <module name="org.eclipse.microprofile.opentracing"/>
+        <module name="org.wildfly.microprofile.opentracing-smallrye"/>
     </dependencies>
 </module>

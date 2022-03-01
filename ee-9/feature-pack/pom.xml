@@ -513,6 +513,10 @@
                                 <exclude>io.opentelemetry:opentelemetry-sdk-common\z</exclude>
                                 <exclude>io.opentelemetry:opentelemetry-sdk-trace\z</exclude>
                                 <exclude>io.opentelemetry:opentelemetry-semconv\z</exclude>
+                                <exclude>io.opentracing.contrib:opentracing-jaxrs2\z</exclude>
+                                <exclude>io.opentracing.contrib:opentracing-interceptors\z</exclude>
+                                <exclude>io.opentracing.contrib:opentracing-tracerresolver\z</exclude>
+                                <exclude>io.opentracing.contrib:opentracing-web-servlet-filter\z</exclude>
                                 <exclude>io.perfmark:perfmark-api\z</exclude>
                                 <exclude>io.smallrye:smallrye-open-api-core</exclude>
                                 <exclude>io.smallrye:smallrye-open-api-jaxrs</exclude>
@@ -698,7 +702,6 @@
                     <groupId>io.opentracing.contrib</groupId>
                     <artifactId>opentracing-web-servlet-filter</artifactId>
                 </exclusion>
-
             </exclusions>
         </dependency>
 
