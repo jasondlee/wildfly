@@ -177,7 +177,9 @@
                     </suiteXmlFiles>
                     <dependenciesToScan>
                         <dependency>org.eclipse.microprofile.opentracing:microprofile-opentracing-tck</dependency>
+                        <!--
                         <dependency>org.eclipse.microprofile.opentracing:microprofile-opentracing-tck-rest-client</dependency>
+                        -->
                     </dependenciesToScan>
                     <systemPropertyVariables>
                         <microprofile.jvm.args>${microprofile.jvm.args}</microprofile.jvm.args>
