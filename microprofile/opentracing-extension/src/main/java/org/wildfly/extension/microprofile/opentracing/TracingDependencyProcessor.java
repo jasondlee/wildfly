@@ -85,7 +85,9 @@ public class TracingDependencyProcessor implements DeploymentUnitProcessor {
         ModuleSpecification moduleSpecification = deploymentUnit.getAttachment(Attachments.MODULE_SPECIFICATION);
         ModuleLoader moduleLoader = Module.getBootModuleLoader();
         for (String module : MODULES) {
-            moduleSpecification.addSystemDependency(new ModuleDependency(moduleLoader, module, false, false, true, false));
+            if (!module.contains(INTERCEPTOR_PACKAGE)) {
+                moduleSpecification.addSystemDependency(new ModuleDependency(moduleLoader, module, false, false, true, false));
+            }
         }
         for (String module : EXPORTED_MODULES) {
             ModuleDependency modDep = new ModuleDependency(moduleLoader, module, false, true, true, false);
