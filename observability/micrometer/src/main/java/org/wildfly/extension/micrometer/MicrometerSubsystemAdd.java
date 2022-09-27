@@ -57,7 +57,7 @@ public class MicrometerSubsystemAdd extends AbstractBoottimeAddStepHandler {
     @Override
     protected void performBoottime(OperationContext context, ModelNode operation, ModelNode model)
             throws OperationFailedException {
-        // If the MP Metrics module is not installed, we need to install the WF Metrics DPU and initiate a metrics
+        // If the MP Metrics module is not installed, we need to install the WF Metrics DUP and initiate a metrics
         // collection. If MP Metrics *is* installed, then we do not need to do either of those things, as that module
         // handles that instead.
         if (!context.getCapabilityServiceSupport().hasCapability(METRICS_SCAN_CAPABILITY)) {

@@ -3,7 +3,7 @@ package org.wildfly.extension.micrometer.model;
 import java.util.Locale;
 
 public enum MicrometerSchema {
-    VERSION_1_0(1, 0), // WildFly 26
+    VERSION_1_0(1, 0), // WildFly Preview 27
     ;
 
     public static final MicrometerSchema CURRENT = VERSION_1_0;
