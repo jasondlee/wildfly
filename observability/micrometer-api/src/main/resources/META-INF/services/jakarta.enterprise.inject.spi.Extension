@@ -1,1 +1,1 @@
-org.wildfly.extension.micrometer.api.MicrometerCdiExtension
+org.wildfly.extension.micrometer.MicrometerCdiExtension

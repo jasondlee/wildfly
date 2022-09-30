@@ -35,7 +35,6 @@
         <module name="io.micrometer"/>
         <module name="io.prometheus"/>
         <module name="io.undertow.core"/>
-        <module name="org.wildfly.extension.micrometer-api"/>
 
         <module name="java.logging"/>
         <module name="java.desktop"/>
@@ -54,7 +53,6 @@
         <module name="org.jboss.weld.core"/>
         <module name="org.jboss.weld.spi"/>
         <module name="org.wildfly.common"/>
-        <module name="org.wildfly.extension.metrics" />
         <module name="org.wildfly.security.manager"/>
     </dependencies>
 </module>
