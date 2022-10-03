@@ -55,8 +55,8 @@ public class MicrometerSubsystemDefinition extends PersistentResourceDefinition 
             RuntimeCapability.Builder.of(MICROMETER_MODULE + ".registry", WildFlyRegistry.class)
                     .build();
     static final RuntimeCapability<Void> MICROMETER_HTTP_CONTEXT_CAPABILITY =
-            RuntimeCapability.Builder.of(MICROMETER_MODULE + ".http-context", MicrometerContextService.class)
-                    .addRequirements(METRICS_HTTP_CONTEXT_CAPABILITY)
+            RuntimeCapability.Builder.of(METRICS_HTTP_CONTEXT_CAPABILITY, MicrometerContextService.class)
+//                    .addRequirements(METRICS_HTTP_CONTEXT_CAPABILITY)
                     .build();
 
     public static final ServiceName MICROMETER_COLLECTOR = MICROMETER_COLLECTOR_RUNTIME_CAPABILITY.getCapabilityServiceName();
@@ -86,7 +86,6 @@ public class MicrometerSubsystemDefinition extends PersistentResourceDefinition 
                     .build();
 
     static final AttributeDefinition[] ATTRIBUTES = {SECURITY_ENABLED, EXPOSED_SUBSYSTEMS};
-    static final MicrometerSubsystemDefinition INSTANCE = new MicrometerSubsystemDefinition();
 
     protected MicrometerSubsystemDefinition() {
         super(new SimpleResourceDefinition.Parameters(MicrometerSubsystemExtension.SUBSYSTEM_PATH,

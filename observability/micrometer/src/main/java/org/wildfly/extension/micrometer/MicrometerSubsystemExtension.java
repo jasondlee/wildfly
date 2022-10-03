@@ -62,7 +62,7 @@ public class MicrometerSubsystemExtension implements Extension {
         subsystem.registerXMLElementWriter(new MicrometerParser(MicrometerSchema.CURRENT));
 
         final ManagementResourceRegistration registration =
-                subsystem.registerSubsystemModel(org.wildfly.extension.micrometer.MicrometerSubsystemDefinition.INSTANCE);
+                subsystem.registerSubsystemModel(new MicrometerSubsystemDefinition());
         registration.registerOperationHandler(GenericSubsystemDescribeHandler.DEFINITION,
                 GenericSubsystemDescribeHandler.INSTANCE);
     }
