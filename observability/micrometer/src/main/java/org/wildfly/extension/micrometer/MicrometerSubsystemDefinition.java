@@ -1,7 +1,7 @@
 /*
  * JBoss, Home of Professional Open Source.
  *
- * Copyright 2021 Red Hat, Inc., and individual contributors
+ * Copyright 2022 Red Hat, Inc., and individual contributors
  * as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.wildfly.extension.micrometer;
 
 import java.util.Arrays;
@@ -56,7 +55,6 @@ public class MicrometerSubsystemDefinition extends PersistentResourceDefinition 
                     .build();
     static final RuntimeCapability<Void> MICROMETER_HTTP_CONTEXT_CAPABILITY =
             RuntimeCapability.Builder.of(METRICS_HTTP_CONTEXT_CAPABILITY, MicrometerContextService.class)
-//                    .addRequirements(METRICS_HTTP_CONTEXT_CAPABILITY)
                     .build();
 
     public static final ServiceName MICROMETER_COLLECTOR = MICROMETER_COLLECTOR_RUNTIME_CAPABILITY.getCapabilityServiceName();
