@@ -39,8 +39,6 @@ import org.wildfly.extension.micrometer.metrics.WildFlyRegistry;
 
 public class MicrometerSubsystemDefinition extends PersistentResourceDefinition {
     public static final String MICROMETER_MODULE = "org.wildfly.extension.micrometer";
-    private static final String MICROMETER_API_MODULE = "org.wildfly.extension.micrometer-api";
-
     static final String CLIENT_FACTORY_CAPABILITY = "org.wildfly.management.model-controller-client-factory";
     static final String HTTP_EXTENSIBILITY_CAPABILITY = "org.wildfly.management.http.extensible";
     static final String MANAGEMENT_EXECUTOR = "org.wildfly.management.executor";
@@ -70,7 +68,6 @@ public class MicrometerSubsystemDefinition extends PersistentResourceDefinition 
     };
 
     public static final String[] EXPORTED_MODULES = {
-            MICROMETER_API_MODULE,
             "io.micrometer"
     };
 
@@ -104,6 +101,7 @@ public class MicrometerSubsystemDefinition extends PersistentResourceDefinition 
         return Arrays.asList(ATTRIBUTES);
     }
 
+    @Override
     public void registerAdditionalRuntimePackages(ManagementResourceRegistration resourceRegistration) {
         resourceRegistration.registerAdditionalRuntimePackages(
                 RuntimePackageDependency.required("io.micrometer" ),
