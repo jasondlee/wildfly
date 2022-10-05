@@ -2328,7 +2328,7 @@
                                 <goals>
                                     <goal>provision</goal>
                                 </goals>
-                                <phase>${provisioning.phase}</phase>
+                                <phase>${provisioning.phase.preview.excluded}</phase>
                                 <configuration>
                                     <install-dir>${layers.install.dir}/test-all-layers</install-dir>
                                     <feature-packs>
@@ -2432,7 +2432,7 @@
                                 <goals>
                                     <goal>provision</goal>
                                 </goals>
-                                <phase>${provisioning.phase}</phase>
+                                <phase>${provisioning.phase.preview.excluded}</phase>
                                 <configuration>
                                     <install-dir>${layers.install.dir}/test-all-layers-jpa-distributed</install-dir>
                                     <feature-packs>
