@@ -22,47 +22,57 @@
 
 package org.wildfly.extension.microprofile.metrics;
 
-import static org.wildfly.extension.microprofile.metrics.MicroProfileMetricsSubsystemDefinition.METRICS_HTTP_CONTEXT_CAPABILITY;
-
 import java.io.IOException;
 import java.util.Properties;
 
 import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
 import org.jboss.as.subsystem.test.AdditionalInitialization;
 import org.jboss.as.subsystem.test.KernelServices;
+import org.jboss.dmr.ModelNode;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author <a href="http://jmesnil.net/">Jeff Mesnil</a> (c) 2018 Red Hat inc.
  */
-public class Subsystem_1_0_ParsingTestCase extends AbstractSubsystemBaseTest {
+public class SubsystemParsingTestCase extends AbstractSubsystemBaseTest {
 
-    public Subsystem_1_0_ParsingTestCase() {
+    public SubsystemParsingTestCase() {
         super(MicroProfileMetricsExtension.SUBSYSTEM_NAME, new MicroProfileMetricsExtension());
     }
 
 
     @Override
     protected String getSubsystemXml() throws IOException {
-        return readResource("subsystem_1_0.xml");
+        return readResource("subsystem_2_0.xml");
     }
 
     @Override
     protected String getSubsystemXsdPath() throws IOException {
-        return "schema/wildfly-microprofile-metrics-smallrye_1_0.xsd";
+        return "schema/wildfly-microprofile-metrics-smallrye_2_0.xsd";
     }
 
+    @Override
     protected Properties getResolvedProperties() {
         return System.getProperties();
     }
 
     @Override
-    protected KernelServices standardSubsystemTest(String configId, boolean compareXml) throws Exception {
-        return super.standardSubsystemTest(configId, false);
+    protected AdditionalInitialization createAdditionalInitialization() {
+        return AdditionalInitialization.ADMIN_ONLY_HC;
     }
 
-    @Override
-    protected AdditionalInitialization createAdditionalInitialization() {
-        return AdditionalInitialization.withCapabilities(
-                METRICS_HTTP_CONTEXT_CAPABILITY);
+    /**
+     * Checks if the subsystem is still capable of reading a configuration that uses version 1.1 of the schema.
+     *
+     * @throws Exception if an error occurs while running the test.
+     */
+    @Test
+    public void testSubsystem1_1() throws Exception {
+        KernelServices servicesA = super.createKernelServicesBuilder(createAdditionalInitialization())
+                .setSubsystemXml(readResource("subsystem_1_0.xml")).build();
+        Assert.assertTrue("Subsystem boot failed!", servicesA.isSuccessfulBoot());
+        ModelNode modelA = servicesA.readWholeModel();
+        super.validateModel(modelA);
     }
 }

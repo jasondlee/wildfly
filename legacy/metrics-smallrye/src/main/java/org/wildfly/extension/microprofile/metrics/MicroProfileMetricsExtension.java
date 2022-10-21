@@ -24,7 +24,9 @@ package org.wildfly.extension.microprofile.metrics;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUBSYSTEM;
 
-import org.jboss.as.controller.Extension;
+import java.util.Collections;
+import java.util.Set;
+
 import org.jboss.as.controller.ExtensionContext;
 import org.jboss.as.controller.ModelVersion;
 import org.jboss.as.controller.PathElement;
@@ -32,14 +34,14 @@ import org.jboss.as.controller.PersistentResourceXMLParser;
 import org.jboss.as.controller.SubsystemRegistration;
 import org.jboss.as.controller.descriptions.ResourceDescriptionResolver;
 import org.jboss.as.controller.descriptions.StandardResourceDescriptionResolver;
-import org.jboss.as.controller.operations.common.GenericSubsystemDescribeHandler;
+import org.jboss.as.controller.extension.AbstractLegacyExtension;
 import org.jboss.as.controller.parsing.ExtensionParsingContext;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 
 /**
  * @author <a href="http://jmesnil.net/">Jeff Mesnil</a> (c) 2018 Red Hat inc.
  */
-public class MicroProfileMetricsExtension implements Extension {
+public class MicroProfileMetricsExtension extends AbstractLegacyExtension {
 
     static final String EXTENSION_NAME = "org.wildfly.extension.microprofile.metrics.smallrye";
 
@@ -58,11 +60,6 @@ public class MicroProfileMetricsExtension implements Extension {
 
     private static final PersistentResourceXMLParser CURRENT_PARSER = new MicroProfileMetricsParser_2_0();
 
-    static ResourceDescriptionResolver getResourceDescriptionResolver(final String... keyPrefix) {
-        return getResourceDescriptionResolver(true, keyPrefix);
-
-    }
-
     static ResourceDescriptionResolver getResourceDescriptionResolver(final boolean useUnprefixedChildTypes, final String... keyPrefix) {
         StringBuilder prefix = new StringBuilder();
         for (String kp : keyPrefix) {
@@ -74,17 +71,20 @@ public class MicroProfileMetricsExtension implements Extension {
         return new StandardResourceDescriptionResolver(prefix.toString(), RESOURCE_NAME, MicroProfileMetricsExtension.class.getClassLoader(), true, useUnprefixedChildTypes);
     }
 
+    public MicroProfileMetricsExtension() {
+        super(EXTENSION_NAME, SUBSYSTEM_NAME);
+    }
     @Override
-    public void initialize(ExtensionContext context) {
+    protected Set<ManagementResourceRegistration> initializeLegacyModel(ExtensionContext context) {
+        MicroProfileMetricsLogger.LOGGER.debug("Activating MicroProfile Metrics Extension");
         final SubsystemRegistration subsystem = context.registerSubsystem(SUBSYSTEM_NAME, CURRENT_MODEL_VERSION);
-        subsystem.registerXMLElementWriter(CURRENT_PARSER);
-
         final ManagementResourceRegistration registration = subsystem.registerSubsystemModel(new MicroProfileMetricsSubsystemDefinition());
-        registration.registerOperationHandler(GenericSubsystemDescribeHandler.DEFINITION, GenericSubsystemDescribeHandler.INSTANCE);
+        subsystem.registerXMLElementWriter(CURRENT_PARSER);
+        return Collections.singleton(registration);
     }
 
     @Override
-    public void initializeParsers(ExtensionParsingContext context) {
+    protected void initializeLegacyParsers(ExtensionParsingContext context) {
         context.setSubsystemXmlMapping(SUBSYSTEM_NAME, MicroProfileMetricsParser_1_0.NAMESPACE, MicroProfileMetricsParser_1_0::new);
         context.setSubsystemXmlMapping(SUBSYSTEM_NAME, MicroProfileMetricsParser_2_0.NAMESPACE, CURRENT_PARSER);
     }
