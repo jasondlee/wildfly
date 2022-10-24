@@ -76,6 +76,6 @@ public class MicroProfileMetricsSubsystemDefinition extends ModelOnlyResourceDef
     @Override
     public void registerOperations(ManagementResourceRegistration resourceRegistration) {
         super.registerOperations(resourceRegistration);
-
+        MigrateOperation.registerOperations(resourceRegistration, MicroProfileMetricsExtension.getResourceDescriptionResolver(true));
     }
 }
