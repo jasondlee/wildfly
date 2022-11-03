@@ -48,6 +48,8 @@
         <module>health-smallrye</module>
         <module>jwt-smallrye</module>
         <module>metrics-smallrye</module>
+        <module>microprofile-telemetry</module>
+        <module>microprofile-telemetry-api</module>
         <module>openapi-smallrye</module>
         <module>opentracing-extension</module>
         <module>opentracing-smallrye</module>

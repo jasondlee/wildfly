@@ -25,6 +25,10 @@
 
     <defaultProtocol type="jmx-as7"/>
 
+    <engine>
+    <property name="deploymentExportPath">target/deployments</property>
+</engine>
+
     <container qualifier="jboss" default="true">
         <configuration>
             <property name="jbossHome">${basedir}/target/wildfly</property>
