@@ -17,13 +17,13 @@
  * limitations under the License.
  */
 
-package org.wildfly.extension.opentelemetry.deployment;
+package org.wildfly.extension.opentelemetry;
 
 import static org.jboss.as.weld.Capabilities.WELD_CAPABILITY_NAME;
-import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.SERVICE_NAME;
-import static org.wildfly.extension.opentelemetry.deployment.OpenTelemetryExtensionLogger.OTEL_LOGGER;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryExtensionLogger.OTEL_LOGGER;
 
-import io.opentelemetry.api.OpenTelemetry;
+import io.smallrye.opentelemetry.api.OpenTelemetryConfig;
+import io.smallrye.opentelemetry.implementation.cdi.OpenTelemetryExtension;
 import org.jboss.as.controller.capability.CapabilityServiceSupport;
 import org.jboss.as.ee.structure.DeploymentType;
 import org.jboss.as.ee.structure.DeploymentTypeMarker;
@@ -32,20 +32,14 @@ import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
-import org.jboss.as.web.common.WarMetaData;
 import org.jboss.as.weld.WeldCapability;
-import org.jboss.metadata.javaee.spec.ParamValueMetaData;
-import org.jboss.metadata.web.jboss.JBossWebMetaData;
-import org.jboss.modules.ModuleClassLoader;
-import org.wildfly.extension.opentelemetry.OpenTelemetryHolder;
 import org.wildfly.extension.opentelemetry.api.OpenTelemetryCdiExtension;
-import org.wildfly.security.manager.WildFlySecurityManager;
 
-public class OpenTelemetrySubsystemDeploymentProcessor implements DeploymentUnitProcessor {
-    private final OpenTelemetryHolder holder;
+class OpenTelemetryDeploymentProcessor implements DeploymentUnitProcessor {
+    private final OpenTelemetryConfig config;
 
-    public OpenTelemetrySubsystemDeploymentProcessor(OpenTelemetryHolder holder) {
-        this.holder = holder;
+    public OpenTelemetryDeploymentProcessor(OpenTelemetryConfig config) {
+        this.config = config;
     }
 
     @Override
@@ -66,14 +60,17 @@ public class OpenTelemetrySubsystemDeploymentProcessor implements DeploymentUnit
                 OTEL_LOGGER.noCdiDeployment();
                 return;
             }
+            weldCapability.registerExtensionInstance(new OpenTelemetryCdiExtension(config), deploymentUnit);
+            weldCapability.registerExtensionInstance(new OpenTelemetryExtension(), deploymentUnit);
         } catch (CapabilityServiceSupport.NoSuchCapabilityException e) {
             // We should not be here since the subsystem depends on weld capability. Just in case ...
             throw OTEL_LOGGER.deploymentRequiresCapability(deploymentPhaseContext.getDeploymentUnit().getName(),
                     WELD_CAPABILITY_NAME);
         }
-        setupOtelCdiBeans(deploymentPhaseContext);
+//        setupOtelCdiBeans(deploymentPhaseContext);
     }
 
+/*
     private void setupOtelCdiBeans(DeploymentPhaseContext deploymentPhaseContext) throws DeploymentUnitProcessingException {
         final DeploymentUnit deploymentUnit = deploymentPhaseContext.getDeploymentUnit();
         final ClassLoader initialCl = WildFlySecurityManager.getCurrentContextClassLoaderPrivileged();
@@ -81,10 +78,10 @@ public class OpenTelemetrySubsystemDeploymentProcessor implements DeploymentUnit
 
         try {
             WildFlySecurityManager.setCurrentContextClassLoaderPrivileged(moduleCL);
-            String serviceName = holder.config.serviceName != null ? holder.config.serviceName : getServiceName(deploymentUnit);
+            String serviceName = config.serviceName != null ? config.serviceName : getServiceName(deploymentUnit);
 
             final OpenTelemetry openTelemetry =
-                    OpenTelemetryCdiExtension.registerApplicationOpenTelemetryBean(moduleCL, holder.getOpenTelemetry());
+                    OpenTelemetryCdiExtension.registerApplicationOpenTelemetryBean(moduleCL, getOpenTelemetry());
             OpenTelemetryCdiExtension.registerApplicationTracer(moduleCL, openTelemetry.getTracer(serviceName));
 
             OTEL_LOGGER.registeringTracer(serviceName);
@@ -136,4 +133,5 @@ public class OpenTelemetrySubsystemDeploymentProcessor implements DeploymentUnit
         }
         return warMetaData.getMergedJBossWebMetaData();
     }
+*/
 }

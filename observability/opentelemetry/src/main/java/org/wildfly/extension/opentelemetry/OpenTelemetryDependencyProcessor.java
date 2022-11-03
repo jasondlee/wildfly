@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package org.wildfly.extension.opentelemetry.deployment;
+package org.wildfly.extension.opentelemetry;
 
 import static org.wildfly.extension.opentelemetry.OpenTelemetrySubsystemDefinition.API_MODULE;
 import static org.wildfly.extension.opentelemetry.OpenTelemetrySubsystemDefinition.EXPORTED_MODULES;
@@ -33,9 +33,8 @@ import org.jboss.as.weld.Capabilities;
 import org.jboss.as.weld.WeldCapability;
 import org.jboss.modules.Module;
 import org.jboss.modules.ModuleLoader;
-import org.wildfly.extension.opentelemetry.api.OpenTelemetryCdiExtension;
 
-public class OpenTelemetryDependencyProcessor implements DeploymentUnitProcessor {
+class OpenTelemetryDependencyProcessor implements DeploymentUnitProcessor {
     @Override
     public void deploy(DeploymentPhaseContext phaseContext) {
         addDependencies(phaseContext.getDeploymentUnit());
@@ -50,7 +49,7 @@ public class OpenTelemetryDependencyProcessor implements DeploymentUnitProcessor
             WeldCapability weldCapability = support.getCapabilityRuntimeAPI(Capabilities.WELD_CAPABILITY_NAME,
                     WeldCapability.class);
             if (weldCapability.isPartOfWeldDeployment(deploymentUnit)) {
-                weldCapability.registerExtensionInstance(new OpenTelemetryCdiExtension(), deploymentUnit);
+//                weldCapability.registerExtensionInstance(new OpenTelemetryCdiExtension(), deploymentUnit);
 
                 // Export the -api module only if CDI is available
                 moduleSpecification.addSystemDependency(new ModuleDependency(moduleLoader, API_MODULE,

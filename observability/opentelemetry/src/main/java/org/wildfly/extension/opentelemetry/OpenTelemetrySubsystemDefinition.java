@@ -39,13 +39,12 @@ import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.operations.validation.StringAllowedValuesValidator;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.wildfly.extension.opentelemetry.deployment.OpenTelemetryExtensionLogger;
 
 /*
  * For future reference: https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure#jaeger-exporter
  */
 
-public class OpenTelemetrySubsystemDefinition extends PersistentResourceDefinition {
+class OpenTelemetrySubsystemDefinition extends PersistentResourceDefinition {
     private static final String[] ALLOWED_EXPORTERS = {"jaeger", "otlp"};
     private static final String[] ALLOWED_SAMPLERS = {"on", "off", "ratio"};
     private static final String[] ALLOWED_SPAN_PROCESSORS = {"batch", "simple"};
@@ -54,7 +53,8 @@ public class OpenTelemetrySubsystemDefinition extends PersistentResourceDefiniti
     public static final String API_MODULE = "org.wildfly.extension.opentelemetry-api";
     public static final String[] EXPORTED_MODULES = {
             "io.opentelemetry.api",
-            "io.opentelemetry.context"
+            "io.opentelemetry.context",
+            "io.smallrye.opentelemetry"
     };
 
     static final RuntimeCapability<Void> OPENTELEMETRY_CAPABILITY =

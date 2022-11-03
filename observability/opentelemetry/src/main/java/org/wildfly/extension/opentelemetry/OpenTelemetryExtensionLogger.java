@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package org.wildfly.extension.opentelemetry.deployment;
+package org.wildfly.extension.opentelemetry;
 
 import static org.jboss.logging.Logger.Level.DEBUG;
 import static org.jboss.logging.Logger.Level.ERROR;
@@ -32,7 +32,7 @@ import org.jboss.logging.annotations.Message;
 import org.jboss.logging.annotations.MessageLogger;
 
 @MessageLogger(projectCode = "WFLYOTELEXT", length = 4)
-public interface OpenTelemetryExtensionLogger extends BasicLogger {
+interface OpenTelemetryExtensionLogger extends BasicLogger {
     OpenTelemetryExtensionLogger OTEL_LOGGER = Logger.getMessageLogger(OpenTelemetryExtensionLogger.class,
             OpenTelemetryExtensionLogger.class.getPackage().getName());
 

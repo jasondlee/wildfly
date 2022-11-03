@@ -37,6 +37,7 @@
         <module name="io.opentelemetry.api" />
         <module name="io.opentelemetry.context" />
         <module name="io.opentelemetry.trace" />
+        <module name="io.smallrye.opentelemetry" export="true" services="export"/>
 
         <module name="java.logging"/>
         <module name="javax.enterprise.api" />

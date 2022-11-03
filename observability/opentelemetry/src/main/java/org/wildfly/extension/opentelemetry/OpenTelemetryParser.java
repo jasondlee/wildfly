@@ -24,7 +24,7 @@ import static org.jboss.as.controller.PersistentResourceXMLDescription.builder;
 import org.jboss.as.controller.PersistentResourceXMLDescription;
 import org.jboss.as.controller.PersistentResourceXMLParser;
 
-public class OpenTelemetryParser extends PersistentResourceXMLParser {
+class OpenTelemetryParser extends PersistentResourceXMLParser {
     private final OpenTelemetrySchema schema;
 
     public OpenTelemetryParser(OpenTelemetrySchema schema) {

@@ -2,7 +2,7 @@ package org.wildfly.extension.opentelemetry;
 
 import java.util.Locale;
 
-public enum OpenTelemetrySchema {
+enum OpenTelemetrySchema {
     VERSION_1_0(1, 0), // WildFly 25
     ;
 

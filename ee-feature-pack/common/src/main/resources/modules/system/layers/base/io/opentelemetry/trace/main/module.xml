@@ -30,20 +30,20 @@
         <artifact name="${io.opentelemetry:opentelemetry-sdk-trace}"/>
         <artifact name="${io.opentelemetry:opentelemetry-sdk-common}"/>
         <artifact name="${io.opentelemetry:opentelemetry-exporter-jaeger}"/>
+        <artifact name="${io.opentelemetry:opentelemetry-exporter-otlp}"/>
         <artifact name="${io.opentelemetry:opentelemetry-exporter-otlp-common}"/>
-        <artifact name="${io.opentelemetry:opentelemetry-exporter-otlp-trace}"/>
         <artifact name="${com.fasterxml.jackson.jr:jackson-jr-objects}"/>
     </resources>
 
     <dependencies>
-        <module name="io.opentelemetry.api"/>
-        <module name="io.opentelemetry.context"/>
         <module name="com.fasterxml.jackson.core.jackson-core"/>
         <module name="com.squareup.okhttp3"/>
+        <module name="io.opentelemetry.api"/>
+        <module name="io.opentelemetry.context"/>
+        <module name="io.smallrye.opentelemetry"/>
         <module name="org.slf4j"/>
 
         <module name="java.logging"/>
         <module name="jdk.unsupported"/>
     </dependencies>
 </module>
-

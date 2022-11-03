@@ -35,6 +35,7 @@
     <dependencies>
         <module name="io.opentelemetry.api" />
         <module name="io.opentelemetry.context" />
+        <module name="io.smallrye.opentelemetry" export="true" services="export"/>
 
         <module name="org.jboss.weld.core"/>
         <module name="org.jboss.weld.spi"/>

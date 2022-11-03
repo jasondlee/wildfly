@@ -19,18 +19,19 @@
   ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
-<module xmlns="urn:jboss:module:1.9" name="io.opentelemetry.api">
+<module xmlns="urn:jboss:module:1.9" name="io.smallrye.opentelemetry">
     <properties>
         <property name="jboss.api" value="private"/>
     </properties>
     <resources>
-        <artifact name="${io.opentelemetry:opentelemetry-api}"/>
-        <artifact name="${io.opentelemetry:opentelemetry-semconv}"/>
+        <artifact name="${io.smallrye.opentelemetry:smallrye-opentelemetry-api}"/>
+        <artifact name="${io.smallrye.opentelemetry:smallrye-opentelemetry-cdi}"/>
+        <artifact name="${io.smallrye.opentelemetry:smallrye-opentelemetry-rest}"/>
     </resources>
 
     <dependencies>
-        <module name="io.opentelemetry.context"/>
-        <module name="io.smallrye.opentelemetry"/>
+        <module name="io.opentelemetry.api"/>
+
         <module name="java.logging"/>
     </dependencies>
 </module>

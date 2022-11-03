@@ -1,55 +1,47 @@
 package org.wildfly.extension.opentelemetry.api;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.WeakHashMap;
-
+import io.smallrye.opentelemetry.api.OpenTelemetryConfig;
 import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Default;
 import jakarta.enterprise.inject.spi.AfterBeanDiscovery;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.BeforeBeanDiscovery;
-import jakarta.enterprise.inject.spi.BeforeShutdown;
 import jakarta.enterprise.inject.spi.Extension;
-
-import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.api.trace.Tracer;
-import org.wildfly.security.manager.WildFlySecurityManager;
+import jakarta.inject.Singleton;
 
 public class OpenTelemetryCdiExtension implements Extension {
-    private static final Map<ClassLoader, OpenTelemetry> OTEL_INSTANCES = Collections.synchronizedMap(new WeakHashMap<>());
-    private static final Map<ClassLoader, Tracer> TRACERS = Collections.synchronizedMap(new WeakHashMap<>());
+    private final OpenTelemetryConfig config;
 
-    private static final Class<?>[] BEANS_TO_ADD = {
-            OpenTelemetryContainerFilter.class,
-            OpenTelemetryRestClientProducer.class,
-            OpenTelemetryClientRequestFilter.class
-    };
-
-    public static OpenTelemetry registerApplicationOpenTelemetryBean(ClassLoader classLoader, OpenTelemetry bean) {
-        OTEL_INSTANCES.put(classLoader, bean);
-        return bean;
+    public OpenTelemetryCdiExtension(OpenTelemetryConfig config) {
+        this.config = config;
     }
 
-    public static Tracer registerApplicationTracer(ClassLoader classLoader, Tracer tracer) {
-        TRACERS.put(classLoader, tracer);
-        return tracer;
-    }
+    public void foo(@Observes BeforeBeanDiscovery bbd) {
 
-    public void beforeBeanDiscovery(@Observes BeforeBeanDiscovery bbd, BeanManager beanManager) {
-        for (Class<?> clazz : BEANS_TO_ADD) {
-            bbd.addAnnotatedType(beanManager.createAnnotatedType(clazz), clazz.getName());
+    }
+    public void registerOtelConfigBean(@Observes AfterBeanDiscovery abd, BeanManager beanManager) {
+        try {
+            // If this class is found, then we don't need to inject our server-config-based configuration, as it's
+            // provided by the smallrye-opentelemetr-config module and MP Config
+            Class.forName("io.smallrye.opentelemetry.implementation.config.OpenTelemetryConfigProducer");
+        } catch (ClassNotFoundException cnfe) {
+            System.out.println("Adding default config [1]");
+
+            abd.addBean()
+                    .scope(Singleton.class)
+                    .addQualifier(Default.Literal.INSTANCE)
+                    .types(OpenTelemetryConfig.class)
+                    .addTransitiveTypeClosure(OpenTelemetryConfig.class)
+                    .id("Created by " + OpenTelemetryCdiExtension.class)
+                    .produceWith(e -> config);
+
+            System.out.println("Adding default config [2]");
+            abd.addBean()
+                    .scope(Singleton.class)
+                    .addQualifier(Default.Literal.INSTANCE)
+                    .addTransitiveTypeClosure(OpenTelemetryConfig.class)
+                    .produceWith(i -> config);
+
         }
-    }
-
-    public void registerOpenTelemetryBeans(@Observes AfterBeanDiscovery abd, BeanManager beanManager) {
-        abd.addBean().addTransitiveTypeClosure(OpenTelemetry.class).produceWith(i ->
-                OTEL_INSTANCES.get(WildFlySecurityManager.getCurrentContextClassLoaderPrivileged()));
-        abd.addBean().addTransitiveTypeClosure(Tracer.class).produceWith(i ->
-                TRACERS.get(WildFlySecurityManager.getCurrentContextClassLoaderPrivileged()));
-    }
-
-    public void beforeShutdown(@Observes final BeforeShutdown bs) {
-        OTEL_INSTANCES.remove(WildFlySecurityManager.getCurrentContextClassLoaderPrivileged());
-        TRACERS.remove(WildFlySecurityManager.getCurrentContextClassLoaderPrivileged());
     }
 }
