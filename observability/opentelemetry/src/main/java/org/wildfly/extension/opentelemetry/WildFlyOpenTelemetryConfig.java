@@ -26,16 +26,6 @@ import java.util.Map;
 import io.smallrye.opentelemetry.api.OpenTelemetryConfig;
 
 class WildFlyOpenTelemetryConfig implements OpenTelemetryConfig {
-//    final String serviceName;
-//    final String exporter;
-//    final String endpoint;
-//    final String spanProcessor;
-//    final long batchDelay;
-//    final int maxQueueSize;
-//    final int maxExportBatchSize;
-//    final long exportTimeout;
-//    final String sampler;
-//    final Double ratio;
     Map<String, String> properties;
 
     private WildFlyOpenTelemetryConfig(String serviceName, String exporter, String endpoint, String spanProcessor,

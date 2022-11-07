@@ -2,7 +2,6 @@ package org.wildfly.extension.opentelemetry.api;
 
 import io.smallrye.opentelemetry.api.OpenTelemetryConfig;
 import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.Default;
 import jakarta.enterprise.inject.spi.AfterBeanDiscovery;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.BeforeBeanDiscovery;
@@ -23,24 +22,28 @@ public class OpenTelemetryCdiExtension implements Extension {
         try {
             // If this class is found, then we don't need to inject our server-config-based configuration, as it's
             // provided by the smallrye-opentelemetr-config module and MP Config
+            // TODO: Use a capability check for this
             Class.forName("io.smallrye.opentelemetry.implementation.config.OpenTelemetryConfigProducer");
         } catch (ClassNotFoundException cnfe) {
             System.out.println("Adding default config [1]");
 
             abd.addBean()
                     .scope(Singleton.class)
-                    .addQualifier(Default.Literal.INSTANCE)
-                    .types(OpenTelemetryConfig.class)
+//                    .addQualifier(Default.Literal.INSTANCE)
+//                    .types(OpenTelemetryConfig.class)
                     .addTransitiveTypeClosure(OpenTelemetryConfig.class)
-                    .id("Created by " + OpenTelemetryCdiExtension.class)
-                    .produceWith(e -> config);
-
-            System.out.println("Adding default config [2]");
-            abd.addBean()
-                    .scope(Singleton.class)
-                    .addQualifier(Default.Literal.INSTANCE)
-                    .addTransitiveTypeClosure(OpenTelemetryConfig.class)
-                    .produceWith(i -> config);
+//                    .id("Created by " + OpenTelemetryCdiExtension.class)
+                    .produceWith(e -> {
+                        System.out.println("'Creating' config");
+                        return config;
+                    });
+//
+//            System.out.println("Adding default config [2]");
+//            abd.addBean()
+//                    .scope(Singleton.class)
+//                    .addQualifier(Default.Literal.INSTANCE)
+//                    .addTransitiveTypeClosure(OpenTelemetryConfig.class)
+//                    .produceWith(i -> config);
 
         }
     }
