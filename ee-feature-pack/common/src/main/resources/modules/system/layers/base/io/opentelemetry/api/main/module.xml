@@ -25,6 +25,8 @@
     </properties>
     <resources>
         <artifact name="${io.opentelemetry:opentelemetry-api}"/>
+        <!-- TODO: Split out into another module? -->
+        <artifact name="${io.opentelemetry:opentelemetry-api-logs}"/>
         <artifact name="${io.opentelemetry:opentelemetry-semconv}"/>
         <artifact name="${io.opentelemetry.instrumentation:opentelemetry-instrumentation-api}"/>
         <artifact name="${io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv}"/>

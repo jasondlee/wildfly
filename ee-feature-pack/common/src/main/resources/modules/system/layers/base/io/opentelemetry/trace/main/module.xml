@@ -24,14 +24,19 @@
         <property name="jboss.api" value="private"/>
     </properties>
     <resources>
-        <artifact name="${io.opentelemetry:opentelemetry-sdk}"/>
+        <artifact name="${io.opentelemetry:opentelemetry-exporter-common}"/>
+        <artifact name="${io.opentelemetry:opentelemetry-exporter-jaeger}"/>
+        <artifact name="${io.opentelemetry:opentelemetry-exporter-otlp-common}"/>
+        <artifact name="${io.opentelemetry:opentelemetry-exporter-otlp}"/>
+        <!-- TODO: Split *sdk* out into another module? -->
+        <artifact name="${io.opentelemetry:opentelemetry-sdk-common}"/>
+        <artifact name="${io.opentelemetry:opentelemetry-sdk-extension-autoconfigure}"/>
+        <artifact name="${io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi}"/>
         <artifact name="${io.opentelemetry:opentelemetry-sdk-logs}"/>
         <artifact name="${io.opentelemetry:opentelemetry-sdk-metrics}"/>
         <artifact name="${io.opentelemetry:opentelemetry-sdk-trace}"/>
-        <artifact name="${io.opentelemetry:opentelemetry-sdk-common}"/>
-        <artifact name="${io.opentelemetry:opentelemetry-exporter-jaeger}"/>
-        <artifact name="${io.opentelemetry:opentelemetry-exporter-otlp}"/>
-        <artifact name="${io.opentelemetry:opentelemetry-exporter-otlp-common}"/>
+        <artifact name="${io.opentelemetry:opentelemetry-sdk}"/>
+
         <artifact name="${com.fasterxml.jackson.jr:jackson-jr-objects}"/>
     </resources>
 

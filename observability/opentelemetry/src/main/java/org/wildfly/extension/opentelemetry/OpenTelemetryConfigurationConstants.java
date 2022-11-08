@@ -21,6 +21,8 @@ package org.wildfly.extension.opentelemetry;
 
 import java.util.Optional;
 
+import org.wildfly.extension.opentelemetry.api.WildFlyOpenTelemetryConfig;
+
 final class OpenTelemetryConfigurationConstants {
     private OpenTelemetryConfigurationConstants() {}
     private String INSTRUMENTATION_NAME = "io.smallrye.opentelemetry";

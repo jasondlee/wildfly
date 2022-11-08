@@ -22,6 +22,7 @@ package org.wildfly.extension.opentelemetry;
 import static org.wildfly.extension.opentelemetry.OpenTelemetrySubsystemDefinition.API_MODULE;
 import static org.wildfly.extension.opentelemetry.OpenTelemetrySubsystemDefinition.EXPORTED_MODULES;
 
+import io.smallrye.opentelemetry.api.OpenTelemetryConfig;
 import org.jboss.as.controller.capability.CapabilityServiceSupport;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
@@ -33,8 +34,15 @@ import org.jboss.as.weld.Capabilities;
 import org.jboss.as.weld.WeldCapability;
 import org.jboss.modules.Module;
 import org.jboss.modules.ModuleLoader;
+import org.wildfly.extension.opentelemetry.api.OpenTelemetryCdiExtension;
 
 class OpenTelemetryDependencyProcessor implements DeploymentUnitProcessor {
+    private final OpenTelemetryConfig config;
+
+    public OpenTelemetryDependencyProcessor(OpenTelemetryConfig config) {
+        this.config = config;
+    }
+
     @Override
     public void deploy(DeploymentPhaseContext phaseContext) {
         addDependencies(phaseContext.getDeploymentUnit());
@@ -50,14 +58,18 @@ class OpenTelemetryDependencyProcessor implements DeploymentUnitProcessor {
                     WeldCapability.class);
             if (weldCapability.isPartOfWeldDeployment(deploymentUnit)) {
 //                weldCapability.registerExtensionInstance(new OpenTelemetryCdiExtension(), deploymentUnit);
+                weldCapability.registerExtensionInstance(new OpenTelemetryCdiExtension(config), deploymentUnit);
 
                 // Export the -api module only if CDI is available
+                System.err.println("Exporting API module");
                 moduleSpecification.addSystemDependency(new ModuleDependency(moduleLoader, API_MODULE,
                         false, true, true, false));
             }
 
             // Export all other modules regardless of CDI availability
             for (String module : EXPORTED_MODULES) {
+                System.err.println("Exporting " + module);
+
                 moduleSpecification.addSystemDependency(new ModuleDependency(moduleLoader, module, false, true,
                         true, false));
             }

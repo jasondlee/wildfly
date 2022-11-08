@@ -17,20 +17,27 @@
  * limitations under the License.
  */
 
-package org.wildfly.extension.opentelemetry;
+package org.wildfly.extension.opentelemetry.api;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import io.smallrye.opentelemetry.api.OpenTelemetryConfig;
+import jakarta.enterprise.inject.Default;
+import jakarta.inject.Singleton;
 
-class WildFlyOpenTelemetryConfig implements OpenTelemetryConfig {
+@Default
+@Singleton
+public class WildFlyOpenTelemetryConfig implements OpenTelemetryConfig {
     Map<String, String> properties;
 
-    private WildFlyOpenTelemetryConfig(String serviceName, String exporter, String endpoint, String spanProcessor,
-                                       String batchDelay, String maxQueueSize, String maxExportBatchSize,
-                                       String exportTimeout, String sampler, String ratio) {
+    public WildFlyOpenTelemetryConfig() {
+    }
+
+    public WildFlyOpenTelemetryConfig(String serviceName, String exporter, String endpoint, String spanProcessor,
+                                      String batchDelay, String maxQueueSize, String maxExportBatchSize,
+                                      String exportTimeout, String sampler, String ratio) {
         Map<String, String> config = new HashMap<>();
         // TODO: Create constants for these. Oddly, the otel API does not provide any
         config.put("otel.service.name", serviceName);
@@ -58,7 +65,7 @@ class WildFlyOpenTelemetryConfig implements OpenTelemetryConfig {
         return properties;
     }
 
-    static class OpenTelemetryConfigBuilder {
+    public static class WildFlyOpenTelemetryConfigBuilder {
         private String serviceName;
         private String exporter;
         private String endpoint;
@@ -70,59 +77,59 @@ class WildFlyOpenTelemetryConfig implements OpenTelemetryConfig {
         private String sampler;
         private String ratio;
 
-        private OpenTelemetryConfigBuilder() {
+        private WildFlyOpenTelemetryConfigBuilder() {
         }
 
-        static OpenTelemetryConfigBuilder config() {
-            return new OpenTelemetryConfigBuilder();
+        public static WildFlyOpenTelemetryConfigBuilder config() {
+            return new WildFlyOpenTelemetryConfigBuilder();
         }
 
-        OpenTelemetryConfigBuilder withServiceName(String serviceName) {
+        public WildFlyOpenTelemetryConfigBuilder withServiceName(String serviceName) {
             this.serviceName = serviceName;
             return this;
         }
 
-        OpenTelemetryConfigBuilder withExporter(String exporter) {
+        public WildFlyOpenTelemetryConfigBuilder withExporter(String exporter) {
             this.exporter = exporter;
             return this;
         }
 
-        OpenTelemetryConfigBuilder withEndpoint(String endpoint) {
+        public WildFlyOpenTelemetryConfigBuilder withEndpoint(String endpoint) {
             this.endpoint = endpoint;
             return this;
         }
 
-        OpenTelemetryConfigBuilder withSpanProcessor(String spanProcessor) {
+        public WildFlyOpenTelemetryConfigBuilder withSpanProcessor(String spanProcessor) {
             this.spanProcessor = spanProcessor;
             return this;
         }
 
-        OpenTelemetryConfigBuilder withBatchDelay(String batchDelay) {
+        public WildFlyOpenTelemetryConfigBuilder withBatchDelay(String batchDelay) {
             this.batchDelay = batchDelay;
             return this;
         }
 
-        OpenTelemetryConfigBuilder withMaxQueueSize(String maxQueueSize) {
+        public WildFlyOpenTelemetryConfigBuilder withMaxQueueSize(String maxQueueSize) {
             this.maxQueueSize = maxQueueSize;
             return this;
         }
 
-        OpenTelemetryConfigBuilder withMaxExportBatchSize(String maxExportBatchSize) {
+        public WildFlyOpenTelemetryConfigBuilder withMaxExportBatchSize(String maxExportBatchSize) {
             this.maxExportBatchSize = maxExportBatchSize;
             return this;
         }
 
-        OpenTelemetryConfigBuilder withExportTimeout(String exportTimeout) {
+        public WildFlyOpenTelemetryConfigBuilder withExportTimeout(String exportTimeout) {
             this.exportTimeout = exportTimeout;
             return this;
         }
 
-        OpenTelemetryConfigBuilder withSampler(String sampler) {
+        public WildFlyOpenTelemetryConfigBuilder withSampler(String sampler) {
             this.sampler = sampler;
             return this;
         }
 
-        OpenTelemetryConfigBuilder withRatio(String ratio) {
+        public WildFlyOpenTelemetryConfigBuilder withRatio(String ratio) {
             this.ratio = ratio;
             return this;
         }

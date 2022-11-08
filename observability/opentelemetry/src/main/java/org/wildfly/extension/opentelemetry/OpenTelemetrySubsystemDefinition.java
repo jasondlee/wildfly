@@ -54,6 +54,7 @@ class OpenTelemetrySubsystemDefinition extends PersistentResourceDefinition {
     public static final String[] EXPORTED_MODULES = {
             "io.opentelemetry.api",
             "io.opentelemetry.context",
+            "io.opentelemetry.trace",
             "io.smallrye.opentelemetry"
     };
 

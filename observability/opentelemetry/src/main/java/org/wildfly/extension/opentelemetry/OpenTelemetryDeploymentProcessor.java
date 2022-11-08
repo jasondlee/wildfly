@@ -23,7 +23,6 @@ import static org.jboss.as.weld.Capabilities.WELD_CAPABILITY_NAME;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryExtensionLogger.OTEL_LOGGER;
 
 import io.smallrye.opentelemetry.api.OpenTelemetryConfig;
-import io.smallrye.opentelemetry.implementation.cdi.OpenTelemetryExtension;
 import org.jboss.as.controller.capability.CapabilityServiceSupport;
 import org.jboss.as.ee.structure.DeploymentType;
 import org.jboss.as.ee.structure.DeploymentTypeMarker;
@@ -61,77 +60,11 @@ class OpenTelemetryDeploymentProcessor implements DeploymentUnitProcessor {
                 return;
             }
             weldCapability.registerExtensionInstance(new OpenTelemetryCdiExtension(config), deploymentUnit);
-            weldCapability.registerExtensionInstance(new OpenTelemetryExtension(), deploymentUnit);
+//            weldCapability.registerExtensionInstance(new OpenTelemetryExtension(), deploymentUnit);
         } catch (CapabilityServiceSupport.NoSuchCapabilityException e) {
             // We should not be here since the subsystem depends on weld capability. Just in case ...
             throw OTEL_LOGGER.deploymentRequiresCapability(deploymentPhaseContext.getDeploymentUnit().getName(),
                     WELD_CAPABILITY_NAME);
         }
-//        setupOtelCdiBeans(deploymentPhaseContext);
     }
-
-/*
-    private void setupOtelCdiBeans(DeploymentPhaseContext deploymentPhaseContext) throws DeploymentUnitProcessingException {
-        final DeploymentUnit deploymentUnit = deploymentPhaseContext.getDeploymentUnit();
-        final ClassLoader initialCl = WildFlySecurityManager.getCurrentContextClassLoaderPrivileged();
-        final ModuleClassLoader moduleCL = deploymentUnit.getAttachment(Attachments.MODULE).getClassLoader();
-
-        try {
-            WildFlySecurityManager.setCurrentContextClassLoaderPrivileged(moduleCL);
-            String serviceName = config.serviceName != null ? config.serviceName : getServiceName(deploymentUnit);
-
-            final OpenTelemetry openTelemetry =
-                    OpenTelemetryCdiExtension.registerApplicationOpenTelemetryBean(moduleCL, getOpenTelemetry());
-            OpenTelemetryCdiExtension.registerApplicationTracer(moduleCL, openTelemetry.getTracer(serviceName));
-
-            OTEL_LOGGER.registeringTracer(serviceName);
-        } catch (SecurityException | IllegalArgumentException ex) {
-            OTEL_LOGGER.errorResolvingTracer(ex);
-        } finally {
-            WildFlySecurityManager.setCurrentContextClassLoaderPrivileged(initialCl);
-        }
-    }
-
-    private String getServiceName(DeploymentUnit deploymentUnit) {
-        JBossWebMetaData jbossWebMetaData = getJBossWebMetaData(deploymentUnit);
-        String serviceName = null;
-
-        if (null == jbossWebMetaData) {
-            // nothing to do here
-            serviceName = "";
-        } else {
-            if (jbossWebMetaData.getContextParams() != null) {
-                for (ParamValueMetaData param : jbossWebMetaData.getContextParams()) {
-                    if (SERVICE_NAME.equals(param.getParamName())) {
-                        serviceName = param.getParamValue();
-                    }
-                }
-            }
-
-            if (null == serviceName || serviceName.isEmpty()) {
-                if (null != deploymentUnit.getParent()) {
-                    // application.ear!module.war
-                    serviceName = deploymentUnit.getParent().getServiceName().getSimpleName()
-                            + "!"
-                            + deploymentUnit.getServiceName().getSimpleName();
-                } else {
-                    serviceName = deploymentUnit.getServiceName().getSimpleName();
-                }
-
-                OTEL_LOGGER.serviceNameDerivedFromDeploymentUnit(serviceName);
-            }
-        }
-
-        return serviceName;
-    }
-
-    private JBossWebMetaData getJBossWebMetaData(DeploymentUnit deploymentUnit) {
-        WarMetaData warMetaData = deploymentUnit.getAttachment(WarMetaData.ATTACHMENT_KEY);
-        if (null == warMetaData) {
-            // not a web deployment, nothing to do here...
-            return null;
-        }
-        return warMetaData.getMergedJBossWebMetaData();
-    }
-*/
 }
