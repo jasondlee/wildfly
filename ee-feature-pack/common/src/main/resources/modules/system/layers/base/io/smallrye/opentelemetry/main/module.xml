@@ -30,15 +30,14 @@
     </resources>
 
     <dependencies>
-        <module name="io.opentelemetry.api" export="true" services="import"/>
-        <module name="io.opentelemetry.context" export="true" services="import"/>
-        <module name="io.opentelemetry.trace" export="true" services="import"/>
+        <module name="io.opentelemetry.api"/>
+        <module name="io.opentelemetry.context"/>
+        <module name="io.opentelemetry.trace"/>
 
         <module name="org.jboss.weld.core"/>
         <module name="org.jboss.weld.spi"/>
         <module name="org.jboss.weld.api"/>
         <module name="jakarta.enterprise.api" />
-        <module name="jakarta.interceptor.api" />
         <module name="jakarta.ws.rs.api" services="import" />
 
         <module name="java.logging"/>
