@@ -23,6 +23,7 @@ import static org.jboss.as.weld.Capabilities.WELD_CAPABILITY_NAME;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryExtensionLogger.OTEL_LOGGER;
 
 import io.smallrye.opentelemetry.api.OpenTelemetryConfig;
+import io.smallrye.opentelemetry.implementation.cdi.OpenTelemetryExtension;
 import org.jboss.as.controller.capability.CapabilityServiceSupport;
 import org.jboss.as.ee.structure.DeploymentType;
 import org.jboss.as.ee.structure.DeploymentTypeMarker;
@@ -60,7 +61,7 @@ class OpenTelemetryDeploymentProcessor implements DeploymentUnitProcessor {
                 return;
             }
             weldCapability.registerExtensionInstance(new OpenTelemetryCdiExtension(config), deploymentUnit);
-//            weldCapability.registerExtensionInstance(new OpenTelemetryExtension(), deploymentUnit);
+            weldCapability.registerExtensionInstance(new OpenTelemetryExtension(), deploymentUnit);
         } catch (CapabilityServiceSupport.NoSuchCapabilityException e) {
             // We should not be here since the subsystem depends on weld capability. Just in case ...
             throw OTEL_LOGGER.deploymentRequiresCapability(deploymentPhaseContext.getDeploymentUnit().getName(),

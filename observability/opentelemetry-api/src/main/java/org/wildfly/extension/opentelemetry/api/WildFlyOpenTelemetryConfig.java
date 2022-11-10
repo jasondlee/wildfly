@@ -30,10 +30,7 @@ import jakarta.inject.Singleton;
 @Default
 @Singleton
 public class WildFlyOpenTelemetryConfig implements OpenTelemetryConfig {
-    Map<String, String> properties;
-
-    public WildFlyOpenTelemetryConfig() {
-    }
+    private final Map<String, String> properties;
 
     public WildFlyOpenTelemetryConfig(String serviceName, String exporter, String endpoint, String spanProcessor,
                                       String batchDelay, String maxQueueSize, String maxExportBatchSize,
@@ -63,80 +60,5 @@ public class WildFlyOpenTelemetryConfig implements OpenTelemetryConfig {
     @Override
     public Map<String, String> properties() {
         return properties;
-    }
-
-    public static class WildFlyOpenTelemetryConfigBuilder {
-        private String serviceName;
-        private String exporter;
-        private String endpoint;
-        private String spanProcessor;
-        private String batchDelay;
-        private String maxQueueSize;
-        private String maxExportBatchSize;
-        private String exportTimeout;
-        private String sampler;
-        private String ratio;
-
-        private WildFlyOpenTelemetryConfigBuilder() {
-        }
-
-        public static WildFlyOpenTelemetryConfigBuilder config() {
-            return new WildFlyOpenTelemetryConfigBuilder();
-        }
-
-        public WildFlyOpenTelemetryConfigBuilder withServiceName(String serviceName) {
-            this.serviceName = serviceName;
-            return this;
-        }
-
-        public WildFlyOpenTelemetryConfigBuilder withExporter(String exporter) {
-            this.exporter = exporter;
-            return this;
-        }
-
-        public WildFlyOpenTelemetryConfigBuilder withEndpoint(String endpoint) {
-            this.endpoint = endpoint;
-            return this;
-        }
-
-        public WildFlyOpenTelemetryConfigBuilder withSpanProcessor(String spanProcessor) {
-            this.spanProcessor = spanProcessor;
-            return this;
-        }
-
-        public WildFlyOpenTelemetryConfigBuilder withBatchDelay(String batchDelay) {
-            this.batchDelay = batchDelay;
-            return this;
-        }
-
-        public WildFlyOpenTelemetryConfigBuilder withMaxQueueSize(String maxQueueSize) {
-            this.maxQueueSize = maxQueueSize;
-            return this;
-        }
-
-        public WildFlyOpenTelemetryConfigBuilder withMaxExportBatchSize(String maxExportBatchSize) {
-            this.maxExportBatchSize = maxExportBatchSize;
-            return this;
-        }
-
-        public WildFlyOpenTelemetryConfigBuilder withExportTimeout(String exportTimeout) {
-            this.exportTimeout = exportTimeout;
-            return this;
-        }
-
-        public WildFlyOpenTelemetryConfigBuilder withSampler(String sampler) {
-            this.sampler = sampler;
-            return this;
-        }
-
-        public WildFlyOpenTelemetryConfigBuilder withRatio(String ratio) {
-            this.ratio = ratio;
-            return this;
-        }
-
-        WildFlyOpenTelemetryConfig build() {
-            return new WildFlyOpenTelemetryConfig(serviceName, exporter, endpoint, spanProcessor, batchDelay, maxQueueSize,
-                    maxExportBatchSize, exportTimeout, sampler, ratio);
-        }
     }
 }
