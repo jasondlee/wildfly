@@ -24,9 +24,9 @@
         <property name="jboss.api" value="private"/>
     </properties>
     <resources>
-        <artifact name="${io.smallrye.opentelemetry:smallrye-opentelemetry-api}"/>
-        <artifact name="${io.smallrye.opentelemetry:smallrye-opentelemetry-cdi}"/>
-        <artifact name="${io.smallrye.opentelemetry:smallrye-opentelemetry-rest}"/>
+        <artifact name="${io.smallrye.opentelemetry:smallrye-opentelemetry-api-jakarta}"/>
+        <artifact name="${io.smallrye.opentelemetry:smallrye-opentelemetry-cdi-jakarta}"/>
+        <artifact name="${io.smallrye.opentelemetry:smallrye-opentelemetry-rest-jakarta}"/>
     </resources>
 
     <dependencies>

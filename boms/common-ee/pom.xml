@@ -773,6 +773,12 @@
                 <groupId>com.google.api.grpc</groupId>
                 <artifactId>proto-google-common-protos</artifactId>
                 <version>${version.com.google.api.grpc}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -823,12 +829,24 @@
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
                 <version>${version.com.google.protobuf}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java-util</artifactId>
                 <version>${version.com.google.protobuf}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -922,37 +940,79 @@
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-api</artifactId>
                 <version>${version.io.grpc}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-context</artifactId>
                 <version>${version.io.grpc}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-core</artifactId>
                 <version>${version.io.grpc}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-okhttp</artifactId>
                 <version>${version.io.grpc}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-protobuf</artifactId>
                 <version>${version.io.grpc}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-protobuf-lite</artifactId>
                 <version>${version.io.grpc}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-stub</artifactId>
                 <version>${version.io.grpc}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -1255,18 +1315,6 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!-- TODO -->
-            <dependency>
-                <groupId>io.opentelemetry.instrumentation</groupId>
-                <artifactId>opentelemetry-instrumentation-annotations</artifactId>
-                <version>${version.io.opentelemetry.opentelemetry-instrumentation}-alpha</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>*</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
             <dependency>
                 <groupId>io.opentelemetry.instrumentation</groupId>
                 <artifactId>opentelemetry-instrumentation-api</artifactId>
@@ -1412,7 +1460,7 @@
             </dependency>
             <dependency>
                 <groupId>io.smallrye.opentelemetry</groupId>
-                <artifactId>smallrye-opentelemetry-api</artifactId>
+                <artifactId>smallrye-opentelemetry-api-jakarta</artifactId>
                 <version>${version.io.smallrye.smallrye-opentelemetry}</version>
                 <exclusions>
                     <exclusion>
@@ -1423,7 +1471,7 @@
             </dependency>
             <dependency>
                 <groupId>io.smallrye.opentelemetry</groupId>
-                <artifactId>smallrye-opentelemetry-cdi</artifactId>
+                <artifactId>smallrye-opentelemetry-cdi-jakarta</artifactId>
                 <version>${version.io.smallrye.smallrye-opentelemetry}</version>
                 <exclusions>
                     <exclusion>
@@ -1434,7 +1482,7 @@
             </dependency>
             <dependency>
                 <groupId>io.smallrye.opentelemetry</groupId>
-                <artifactId>smallrye-opentelemetry-rest</artifactId>
+                <artifactId>smallrye-opentelemetry-rest-jakarta</artifactId>
                 <version>${version.io.smallrye.smallrye-opentelemetry}</version>
                 <exclusions>
                     <exclusion>
@@ -1448,6 +1496,12 @@
                 <groupId>io.perfmark</groupId>
                 <artifactId>perfmark-api</artifactId>
                 <version>${version.io.perfmark}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>

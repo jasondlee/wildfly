@@ -53,6 +53,7 @@ public class WildFlyOpenTelemetryConfig implements OpenTelemetryConfig {
         config.put("otel.bsp.max.export.batch.size", maxExportBatchSize);
         config.put("otel.traces.sampler", sampler);
         config.put("otel.traces.sampler.arg", ratio);
+        config.put(OpenTelemetryConfig.REGISTER_GLOBAL_OTEL, "false");
 
         properties = Collections.unmodifiableMap(config);
     }

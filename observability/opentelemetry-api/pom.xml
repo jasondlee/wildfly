@@ -76,15 +76,15 @@
         </dependency>
         <dependency>
             <groupId>io.smallrye.opentelemetry</groupId>
-            <artifactId>smallrye-opentelemetry-api</artifactId>
+            <artifactId>smallrye-opentelemetry-api-jakarta</artifactId>
         </dependency>
         <dependency>
             <groupId>io.smallrye.opentelemetry</groupId>
-            <artifactId>smallrye-opentelemetry-cdi</artifactId>
+            <artifactId>smallrye-opentelemetry-cdi-jakarta</artifactId>
         </dependency>
         <dependency>
             <groupId>io.smallrye.opentelemetry</groupId>
-            <artifactId>smallrye-opentelemetry-rest</artifactId>
+            <artifactId>smallrye-opentelemetry-rest-jakarta</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.enterprise</groupId>
