@@ -22,24 +22,19 @@
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
 
-<module xmlns="urn:jboss:module:1.9" name="io.micrometer">
+<module xmlns="urn:jboss:module:1.9" name="io.opentelemetry.proto">
     <properties>
         <property name="jboss.api" value="private"/>
     </properties>
 
     <resources>
-        <artifact name="${io.micrometer:micrometer-core}"/>
-        <artifact name="${io.micrometer:micrometer-registry-prometheus}"/>
-        <artifact name="${io.opentelemetry:opentelemetry-exporter-otlp}"/>
-        <artifact name="${io.opentelemetry:opentelemetry-exporter-common}"/>
-        <artifact name="${io.opentelemetry:opentelemetry-exporter-otlp-common}"/>
+        <artifact name="${io.opentelemetry.proto:opentelemetry-proto}"/>
     </resources>
 
     <dependencies>
-        <module name="io.prometheus"/>
-        <module name="org.latencyutils"/>
+        <module name="io.opentelemetry.otlp"/>
+        <module name="com.google.protobuf"/>
 
-        <module name="jakarta.servlet.api"/>
         <module name="java.management"/>
         <module name="java.logging"/>
     </dependencies>

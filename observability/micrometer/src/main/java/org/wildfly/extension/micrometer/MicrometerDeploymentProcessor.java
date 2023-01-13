@@ -1,7 +1,7 @@
 /*
  * JBoss, Home of Professional Open Source.
  *
- * Copyright 2022 Red Hat, Inc., and individual contributors
+ * Copyright 2022-2023 Red Hat, Inc., and individual contributors
  * as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +19,8 @@
 
 package org.wildfly.extension.micrometer;
 
+import static org.wildfly.extension.micrometer.MicrometerExtension.WELD_CAPABILITY_NAME;
 import static org.wildfly.extension.micrometer.MicrometerExtensionLogger.MICROMETER_LOGGER;
-import static org.wildfly.extension.micrometer.MicrometerSubsystemExtension.WELD_CAPABILITY_NAME;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -36,13 +36,14 @@ import org.jboss.as.weld.WeldCapability;
 import org.wildfly.extension.micrometer.api.MicrometerCdiExtension;
 import org.wildfly.extension.micrometer.metrics.WildFlyRegistry;
 
-class MicrometerSubsystemDeploymentProcessor implements DeploymentUnitProcessor {
+class MicrometerDeploymentProcessor implements DeploymentUnitProcessor {
     private final boolean exposeAnySubsystem;
     private final List<String> exposedSubsystems;
     private final Supplier<WildFlyRegistry> registrySupplier;
 
-    MicrometerSubsystemDeploymentProcessor(boolean exposeAnySubsystem, List<String> exposedSubsystems,
-                                                  Supplier<WildFlyRegistry> registrySupplier) {
+    MicrometerDeploymentProcessor(boolean exposeAnySubsystem,
+                                  List<String> exposedSubsystems,
+                                  Supplier<WildFlyRegistry> registrySupplier) {
         this.exposeAnySubsystem = exposeAnySubsystem;
         this.exposedSubsystems = exposedSubsystems;
         this.registrySupplier = registrySupplier;
@@ -56,34 +57,34 @@ class MicrometerSubsystemDeploymentProcessor implements DeploymentUnitProcessor 
                 deploymentPhaseContext,
                 deploymentUnit.getAttachment(DeploymentModelUtils.DEPLOYMENT_RESOURCE),
                 deploymentUnit.getAttachment(DeploymentModelUtils.MUTABLE_REGISTRATION_ATTACHMENT),
+                registrySupplier,
                 exposeAnySubsystem,
                 exposedSubsystems);
 
-        registerCdiExtension(deploymentUnit);
+        registerCdiExtension(deploymentPhaseContext);
     }
 
     @Override
     public void undeploy(DeploymentUnit context) {
     }
 
-    private void registerCdiExtension(DeploymentUnit deploymentUnit) throws DeploymentUnitProcessingException {
+    private void registerCdiExtension(DeploymentPhaseContext deploymentPhaseContext) throws DeploymentUnitProcessingException {
+        DeploymentUnit deploymentUnit = deploymentPhaseContext.getDeploymentUnit();
         try {
             CapabilityServiceSupport support = deploymentUnit.getAttachment(Attachments.CAPABILITY_SERVICE_SUPPORT);
 
 
             final WeldCapability weldCapability = support.getCapabilityRuntimeAPI(WELD_CAPABILITY_NAME, WeldCapability.class);
             if (!weldCapability.isPartOfWeldDeployment(deploymentUnit)) {
-                // Jakarta RESTful Web Services require Jakarta Contexts and Dependency Injection. Without Jakarta
-                // Contexts and Dependency Injection, there's no integration needed
                 MICROMETER_LOGGER.noCdiDeployment();
-                return;
-            }
-            WildFlyRegistry registry = registrySupplier.get();
-            if (registry == null) {
-                throw new DeploymentUnitProcessingException(new IllegalStateException());
-            }
+            } else {
+                WildFlyRegistry registry = registrySupplier.get();
+                if (registry == null) {
+                    throw new DeploymentUnitProcessingException(new IllegalStateException());
+                }
 
-            weldCapability.registerExtensionInstance(new MicrometerCdiExtension(registry), deploymentUnit);
+                weldCapability.registerExtensionInstance(new MicrometerCdiExtension(registry), deploymentUnit);
+            }
         } catch (CapabilityServiceSupport.NoSuchCapabilityException e) {
             //We should not be here since the subsystem depends on weld capability. Just in case ...
             MICROMETER_LOGGER.deploymentRequiresCapability(deploymentUnit.getName(), WELD_CAPABILITY_NAME);

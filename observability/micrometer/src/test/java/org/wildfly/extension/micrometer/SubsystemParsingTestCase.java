@@ -34,7 +34,7 @@ public class SubsystemParsingTestCase extends AbstractSubsystemBaseTest {
     private String testXml;
 
     public SubsystemParsingTestCase() {
-        super(MicrometerSubsystemExtension.SUBSYSTEM_NAME, new MicrometerSubsystemExtension());
+        super(MicrometerExtension.SUBSYSTEM_NAME, new MicrometerExtension());
     }
 
     /**
@@ -55,7 +55,7 @@ public class SubsystemParsingTestCase extends AbstractSubsystemBaseTest {
         Assert.assertEquals(1, addr.size());
         PathElement element = addr.getElement(0);
         Assert.assertEquals(SUBSYSTEM, element.getKey());
-        Assert.assertEquals(MicrometerSubsystemExtension.SUBSYSTEM_NAME, element.getValue());
+        Assert.assertEquals(MicrometerExtension.SUBSYSTEM_NAME, element.getValue());
     }
 
     /**
@@ -72,7 +72,7 @@ public class SubsystemParsingTestCase extends AbstractSubsystemBaseTest {
 
         //Read the whole model and make sure it looks as expected
         ModelNode model = services.readWholeModel();
-        Assert.assertTrue(model.get(SUBSYSTEM).hasDefined(MicrometerSubsystemExtension.SUBSYSTEM_NAME));
+        Assert.assertTrue(model.get(SUBSYSTEM).hasDefined(MicrometerExtension.SUBSYSTEM_NAME));
     }
 
     /**

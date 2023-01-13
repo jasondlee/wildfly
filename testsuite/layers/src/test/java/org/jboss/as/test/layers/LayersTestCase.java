@@ -103,7 +103,13 @@ public class LayersTestCase {
             // TODO test-all-layers uses microprofile-opentracing instead of opentelemetry
             "org.wildfly.extension.opentelemetry",
             "org.wildfly.extension.opentelemetry-api",
+            "io.opentelemetry.proto",
+            "io.opentelemetry.otlp",
             "io.opentelemetry.trace",
+            // Micrometer is not included in standard configs
+            "io.micrometer",
+            "org.wildfly.extension.micrometer",
+            "org.wildfly.extension.micrometer-api",
             // Unreferenced Infinispan modules
             "org.infinispan.cdi.common",
             "org.infinispan.cdi.embedded",

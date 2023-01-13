@@ -34,16 +34,16 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.wildfly.extension.micrometer.model.MicrometerModel;
 import org.wildfly.extension.micrometer.model.MicrometerSchema;
 
-public class MicrometerSubsystemExtension implements Extension {
+public class MicrometerExtension implements Extension {
     public static final String WELD_CAPABILITY_NAME = "org.wildfly.weld";
     public static final String SUBSYSTEM_NAME = "micrometer";
     public static final PathElement SUBSYSTEM_PATH = PathElement.pathElement(SUBSYSTEM, SUBSYSTEM_NAME);
 
     private static final String RESOURCE_NAME =
-            MicrometerSubsystemExtension.class.getPackage().getName() + ".LocalDescriptions";
+            MicrometerExtension.class.getPackage().getName() + ".LocalDescriptions";
 
     static ResourceDescriptionResolver getResourceDescriptionResolver(final String... keyPrefix) {
-        StringBuilder prefix = new StringBuilder(MicrometerSubsystemExtension.SUBSYSTEM_NAME);
+        StringBuilder prefix = new StringBuilder(MicrometerExtension.SUBSYSTEM_NAME);
         for (String kp : keyPrefix) {
             if (prefix.length() > 0) {
                 prefix.append('.');
@@ -51,7 +51,7 @@ public class MicrometerSubsystemExtension implements Extension {
             prefix.append(kp);
         }
         return new StandardResourceDescriptionResolver(prefix.toString(), RESOURCE_NAME,
-                MicrometerSubsystemExtension.class.getClassLoader(), true, true);
+                MicrometerExtension.class.getClassLoader(), true, true);
     }
 
     @Override

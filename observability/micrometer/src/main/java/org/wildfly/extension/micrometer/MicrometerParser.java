@@ -33,7 +33,7 @@ class MicrometerParser extends PersistentResourceXMLParser {
 
     @Override
     public PersistentResourceXMLDescription getParserDescription() {
-        return  builder(org.wildfly.extension.micrometer.MicrometerSubsystemExtension.SUBSYSTEM_PATH, schema.getNamespaceUri())
+        return  builder(MicrometerExtension.SUBSYSTEM_PATH, schema.getNamespaceUri())
                 .addAttributes(MicrometerSubsystemDefinition.ATTRIBUTES)
                 .build();
     }

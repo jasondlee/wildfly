@@ -1,4 +1,4 @@
-package org.wildfly.test.preview.observability.micrometer;
+package org.wildfly.test.integration.observability.micrometer;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.RequestScoped;

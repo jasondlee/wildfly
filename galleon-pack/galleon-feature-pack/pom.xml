@@ -189,6 +189,16 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Micrometer -->
+        <dependency><groupId>${project.groupId}</groupId><artifactId>wildfly-micrometer-api</artifactId></dependency>
+        <dependency><groupId>${project.groupId}</groupId><artifactId>wildfly-micrometer</artifactId></dependency>
+        <dependency><groupId>io.micrometer</groupId><artifactId>micrometer-core</artifactId></dependency>
+        <dependency><groupId>io.micrometer</groupId><artifactId>micrometer-registry-otlp</artifactId></dependency>
+        <dependency><groupId>io.opentelemetry</groupId><artifactId>opentelemetry-exporter-otlp-common</artifactId></dependency>
+        <dependency><groupId>io.opentelemetry.proto</groupId><artifactId>opentelemetry-proto</artifactId></dependency>
+        <dependency><groupId>com.google.protobuf</groupId><artifactId>protobuf-java</artifactId></dependency>
+        <!-- Micrometer -->
+
     </dependencies>
 
     <profiles>
