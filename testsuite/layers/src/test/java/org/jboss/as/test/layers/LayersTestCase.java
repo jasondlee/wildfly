@@ -106,6 +106,8 @@ public class LayersTestCase {
             "org.wildfly.extension.opentelemetry-api",
             "io.opentelemetry.exporter",
             "io.opentelemetry.sdk",
+            "com.squareup.okhttp3",
+            "org.jetbrains.kotlin.kotlin-stdlib",
             // Unreferenced Infinispan modules
             "org.infinispan.cdi.common",
             "org.infinispan.cdi.embedded",
@@ -122,6 +124,8 @@ public class LayersTestCase {
             "com.amazon.ion",
             "com.fasterxml.jackson.dataformat.jackson-dataformat-cbor",
             "org.jgroups.aws",
+            "org.wildfly.microprofile.opentracing-smallrye",
+            "org.wildfly.extension.microprofile.opentracing-smallrye"
     };
     private static final String[] NOT_USED;
     // Packages that are not referenced from the module graph but needed.
