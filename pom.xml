@@ -889,6 +889,13 @@
 
             <dependency>
                 <groupId>${full.maven.groupId}</groupId>
+                <artifactId>wildfly-feature-pack-common</artifactId>
+                <version>${full.maven.version}</version>
+                <type>pom</type>
+            </dependency>
+
+            <dependency>
+                <groupId>${full.maven.groupId}</groupId>
                 <artifactId>wildfly-feature-pack-galleon-content</artifactId>
                 <version>${full.maven.version}</version>
                 <type>pom</type>
