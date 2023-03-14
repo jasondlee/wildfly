@@ -27,7 +27,6 @@ import java.util.Collections;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.PersistentResourceDefinition;
 import org.jboss.as.controller.ReloadRequiredRemoveStepHandler;
-import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 
 public class MicroProfileTelemetrySubsystemDefinition extends PersistentResourceDefinition {
@@ -51,9 +50,7 @@ public class MicroProfileTelemetrySubsystemDefinition extends PersistentResource
                     .build();
 
     protected MicroProfileTelemetrySubsystemDefinition() {
-        super(new SimpleResourceDefinition.Parameters(MicroProfileTelemetryExtension.SUBSYSTEM_PATH,
-                MicroProfileTelemetryExtension.getResourceDescriptionResolver(true,
-                        MicroProfileTelemetryExtension.SUBSYSTEM_NAME))
+        super(new Parameters(MicroProfileTelemetryExtension.SUBSYSTEM_PATH, MicroProfileTelemetryExtension.SUBSYSTEM_RESOLVER)
                 .setAddHandler(new MicroProfileTelemetrySubsystemAdd())
                 .setRemoveHandler(new ReloadRequiredRemoveStepHandler())
                 .setCapabilities(MICROPROFILE_TELEMETRY_CAPABILITY)
