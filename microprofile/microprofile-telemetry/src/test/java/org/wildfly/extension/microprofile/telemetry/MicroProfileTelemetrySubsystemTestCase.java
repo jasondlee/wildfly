@@ -37,14 +37,14 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(value = Parameterized.class)
 public class MicroProfileTelemetrySubsystemTestCase extends AbstractSubsystemBaseTest {
 
-    private final MicroProfileTelemetrySchema schema;
+    private final MicroProfileTelemetrySubsystemSchema schema;
 
     @Parameters
-    public static Iterable<MicroProfileTelemetrySchema> parameters() {
-        return EnumSet.allOf(MicroProfileTelemetrySchema.class);
+    public static Iterable<MicroProfileTelemetrySubsystemSchema> parameters() {
+        return EnumSet.allOf(MicroProfileTelemetrySubsystemSchema.class);
     }
 
-    public MicroProfileTelemetrySubsystemTestCase(MicroProfileTelemetrySchema schema) {
+    public MicroProfileTelemetrySubsystemTestCase(MicroProfileTelemetrySubsystemSchema schema) {
         super(MicroProfileTelemetryExtension.SUBSYSTEM_NAME, new MicroProfileTelemetryExtension());
         this.schema = schema;
     }
@@ -52,12 +52,12 @@ public class MicroProfileTelemetrySubsystemTestCase extends AbstractSubsystemBas
     @Override
     protected String getSubsystemXml() throws IOException {
         return this.readResource(String.format(Locale.ROOT, "%s_%d_%d.xml", this.getMainSubsystemName(),
-                this.schema.major(), this.schema.minor()));
+                this.schema.getVersion().major(), this.schema.getVersion().minor()));
     }
 
     @Override
     protected String getSubsystemXsdPath() throws IOException {
         return String.format(Locale.ROOT, "schema/wildfly-%s_%d_%d.xsd", this.getMainSubsystemName(),
-                this.schema.major(), this.schema.minor());
+                this.schema.getVersion().major(), this.schema.getVersion().minor());
     }
 }
