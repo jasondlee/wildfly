@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
@@ -33,6 +34,7 @@ public class WildFlyMetricMetadata implements MetricMetadata {
     private String metricName;
     private MetricTag[] tags;
     private MetricID metricID;
+    private String deploymentName;
 
     public WildFlyMetricMetadata(String attributeName,
                                  PathAddress address,
@@ -63,24 +65,30 @@ public class WildFlyMetricMetadata implements MetricMetadata {
                 continue;
             }
             if (!key.equals(DEPLOYMENT) && !key.equals(SUBDEPLOYMENT)) {
-                labelNames.add("type");
-                labelValues.add(key);
+//                labelNames.add("type");
+                labelNames.add(key);
 
-                labelNames.add("name");
+//                labelNames.add("name");
                 labelValues.add(value);
             } else {
-                labelNames.add(getDottedName(key));
-                labelValues.add(value);
+                if (!key.isBlank() && !value.isBlank()) {
+                    labelNames.add(getDottedName(key));
+                    labelValues.add(value);
+                }
             }
         }
         // if the resource address defines a deployment (without subdeployment),
         int deploymentIndex = labelNames.indexOf(DEPLOYMENT);
         int subdeploymentIndex = labelNames.indexOf(SUBDEPLOYMENT);
-        if (deploymentIndex > -1 && subdeploymentIndex == -1) {
-            labelNames.add(SUBDEPLOYMENT);
-            subdeploymentIndex = labelNames.size()-1;
-            labelValues.add(labelValues.get(deploymentIndex));
+        if (deploymentIndex > -1) {
+            deploymentName = labelValues.get(deploymentIndex);
+            if (subdeploymentIndex == -1) {
+                labelNames.add(SUBDEPLOYMENT);
+                subdeploymentIndex = labelNames.size() - 1;
+                labelValues.add(deploymentName);
+            }
         }
+/*
         if (deploymentIndex == -1) {
             labelNames.add(DEPLOYMENT);
             labelValues.add("");
@@ -89,18 +97,23 @@ public class WildFlyMetricMetadata implements MetricMetadata {
             labelNames.add(SUBDEPLOYMENT);
             labelValues.add("");
         }
+*/
 
         if (!labelNames.contains("app")) {
             labelNames.add("app");
             labelValues.add(deploymentIndex >= 0 ? labelValues.get(deploymentIndex) : "wildfly");
         }
 
-        metricName = getDottedName(metricPrefix + attributeName);
+        metricName = getDottedName(metricPrefix + attributeName + (deploymentName != null ? "-" + deploymentName : ""));
         tags = new MetricTag[labelNames.size()];
         for (int i = 0; i < labelNames.size(); i++) {
             tags[i] = new MetricTag(labelNames.get(i), labelValues.get(i));
         }
         metricID = new MetricID(metricName, tags);
+        System.err.println("***** Metric: name: " + metricName + ", tags: [" +
+                Arrays.stream(tags).map(it -> it.getKey() + "->" + it.getValue() )
+                        .collect(Collectors.joining(",")) + "]");
+
     }
 
     @Override
@@ -140,7 +153,7 @@ public class WildFlyMetricMetadata implements MetricMetadata {
 
     private static String decamelize(String in) {
         Matcher m = SNAKE_CASE_PATTERN.matcher(in);
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         while (m.find()) {
             m.appendReplacement(sb, "." + m.group().toLowerCase(Locale.ENGLISH));
         }
