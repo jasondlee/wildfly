@@ -21,6 +21,10 @@
         <module name="io.opentelemetry.exporter" />
         <module name="io.opentelemetry.sdk" />
         <module name="io.smallrye.opentelemetry" />
+        <module name="io.vertx.core" />
+        <module name="io.vertx.grpc-client" />
+        <module name="io.vertx.grpc-common" />
+        <module name="io.netty.netty-buffer" />
 
         <module name="org.jboss.weld.api"/>
         <module name="org.jboss.weld.core"/>
