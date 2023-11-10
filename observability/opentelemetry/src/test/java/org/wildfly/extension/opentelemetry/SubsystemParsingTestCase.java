@@ -13,7 +13,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.stream.XMLStreamException;
 
 import org.jboss.as.subsystem.test.AbstractSubsystemSchemaTest;
