@@ -28,6 +28,7 @@
         <module name="org.wildfly.security.manager"/>
 
         <module name="java.logging"/>
+        <module name="java.management"/>
 
         <module name="jakarta.enterprise.api" />
         <module name="jakarta.ws.rs.api" optional="true" services="import"/>
