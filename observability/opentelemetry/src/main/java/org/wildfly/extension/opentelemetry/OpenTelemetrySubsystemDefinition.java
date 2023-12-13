@@ -28,13 +28,19 @@ import io.smallrye.opentelemetry.api.OpenTelemetryConfig;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
+import org.jboss.as.controller.OperationStepHandler;
+import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PersistentResourceDefinition;
 import org.jboss.as.controller.ReloadRequiredRemoveStepHandler;
+import org.jboss.as.controller.ReloadRequiredWriteAttributeHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
+import org.jboss.as.controller.logging.ControllerLogger;
 import org.jboss.as.controller.operations.validation.StringAllowedValuesValidator;
+import org.jboss.as.controller.registry.AttributeAccess;
+import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 
@@ -170,23 +176,32 @@ class OpenTelemetrySubsystemDefinition extends PersistentResourceDefinition {
         );
     }
 
-    public static String getExporter(OperationContext context, ModelNode model) throws OperationFailedException {
-        String exporter = OpenTelemetrySubsystemDefinition.EXPORTER.resolveModelAttribute(context, model).asString();
+    static void validateExporter(OperationContext context, String exporter) throws OperationFailedException {
 
         if (EXPORTER_JAEGER.equals(exporter)) {
             if (context.isNormalServer()) {
+                context.setRollbackOnly();
                 throw new OperationFailedException(OTEL_LOGGER.jaegerIsNoLongerSupported());
             } else {
                 OTEL_LOGGER.warn(OTEL_LOGGER.jaegerIsNoLongerSupported());
             }
         }
-
-        return exporter;
     }
 
     @Override
     public Collection<AttributeDefinition> getAttributes() {
         return Arrays.asList(ATTRIBUTES);
+    }
+
+    @Override
+    public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
+        OperationStepHandler handler = new ValidateExporterWriteAttributeHandler();
+        for (AttributeDefinition attr : getAttributes()) {
+            if(!attr.getFlags().contains(AttributeAccess.Flag.RESTART_ALL_SERVICES)) {
+                throw ControllerLogger.ROOT_LOGGER.attributeWasNotMarkedAsReloadRequired(attr.getName(), resourceRegistration.getPathAddress());
+            }
+            resourceRegistration.registerReadWriteAttribute(attr, null, handler);
+        }
     }
 
     static class WildFlyOpenTelemetryConfigSupplier implements Supplier<OpenTelemetryConfig>, Consumer<OpenTelemetryConfig> {
@@ -199,6 +214,20 @@ class OpenTelemetrySubsystemDefinition extends PersistentResourceDefinition {
         @Override
         public OpenTelemetryConfig get() {
             return config;
+        }
+    }
+
+    private static class ValidateExporterWriteAttributeHandler extends ReloadRequiredWriteAttributeHandler {
+
+        @Override
+        protected boolean applyUpdateToRuntime(OperationContext context, ModelNode operation, String attributeName, ModelNode resolvedValue, ModelNode currentValue, HandbackHolder<Void> voidHandback) throws OperationFailedException {
+            AttributeDefinition attributeDefinition = context.getResourceRegistration().getAttributeAccess(PathAddress.EMPTY_ADDRESS, attributeName).getAttributeDefinition();
+            if (EXPORTER.equals(attributeDefinition)) {
+                // Need to validate 'jaeger' isn't used in a non-admin-only server
+                validateExporter(context, resolvedValue.asString());
+            }
+
+            return super.applyUpdateToRuntime(context, operation, attributeName, resolvedValue, currentValue, voidHandback);
         }
     }
 }

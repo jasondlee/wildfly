@@ -8,7 +8,6 @@ package org.wildfly.extension.opentelemetry.api;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import javax.management.InvalidAttributeValueException;
 
 import io.smallrye.opentelemetry.api.OpenTelemetryConfig;
 
@@ -38,7 +37,7 @@ public final class WildFlyOpenTelemetryConfig implements OpenTelemetryConfig {
 
     public WildFlyOpenTelemetryConfig(String serviceName, String exporter, String endpoint,
                                       Long batchDelay, Long maxQueueSize, Long maxExportBatchSize,
-                                      Long exportTimeout, String spanProcessorType, String sampler, Double ratio) throws InvalidAttributeValueException {
+                                      Long exportTimeout, String spanProcessorType, String sampler, Double ratio) {
         Map<String, String> config = new HashMap<>();
         // Default to on
         addValue(config, OTEL_SDK_DISABLED, "false");
@@ -57,7 +56,7 @@ public final class WildFlyOpenTelemetryConfig implements OpenTelemetryConfig {
             addValue(config, OTEL_EXPORTER_OTLP_PROTOCOL, "grpc");
             addValue(config, OTEL_EXPORTER_OTLP_TIMEOUT, exportTimeout);
         } else {
-            throw new InvalidAttributeValueException("An unexpected exporter type was found: " + exporter);
+            throw new IllegalArgumentException("An unexpected exporter type was found: " + exporter);
         }
 
         addValue(config, OTEL_BSP_SCHEDULE_DELAY, batchDelay);
