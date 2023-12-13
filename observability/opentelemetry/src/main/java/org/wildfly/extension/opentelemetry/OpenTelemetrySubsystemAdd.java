@@ -6,8 +6,7 @@
 package org.wildfly.extension.opentelemetry;
 
 import static org.wildfly.extension.opentelemetry.OpenTelemetrySubsystemDefinition.CONFIG_SUPPLIER;
-
-import javax.management.InvalidAttributeValueException;
+import static org.wildfly.extension.opentelemetry.OpenTelemetrySubsystemDefinition.validateExporter;
 
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
@@ -38,48 +37,47 @@ class OpenTelemetrySubsystemAdd extends AbstractBoottimeAddStepHandler {
     protected void performBoottime(OperationContext context, ModelNode operation, ModelNode model) throws OperationFailedException {
         super.performBoottime(context, operation, model);
 
-        try {
-            final WildFlyOpenTelemetryConfig config = new WildFlyOpenTelemetryConfig(
-                    OpenTelemetrySubsystemDefinition.SERVICE_NAME.resolveModelAttribute(context, model).asStringOrNull(),
-                    OpenTelemetrySubsystemDefinition.getExporter(context, model),
-                    OpenTelemetrySubsystemDefinition.ENDPOINT.resolveModelAttribute(context, model).asStringOrNull(),
-                    OpenTelemetrySubsystemDefinition.BATCH_DELAY.resolveModelAttribute(context, model).asLongOrNull(),
-                    OpenTelemetrySubsystemDefinition.MAX_QUEUE_SIZE.resolveModelAttribute(context, model).asLongOrNull(),
-                    OpenTelemetrySubsystemDefinition.MAX_EXPORT_BATCH_SIZE.resolveModelAttribute(context, model).asLongOrNull(),
-                    OpenTelemetrySubsystemDefinition.EXPORT_TIMEOUT.resolveModelAttribute(context, model).asLongOrNull(),
-                    OpenTelemetrySubsystemDefinition.SPAN_PROCESSOR_TYPE.resolveModelAttribute(context, model).asStringOrNull(),
-                    OpenTelemetrySubsystemDefinition.SAMPLER.resolveModelAttribute(context, model).asStringOrNull(),
-                    OpenTelemetrySubsystemDefinition.RATIO.resolveModelAttribute(context, model).asDoubleOrNull()
-            );
+        String exporter = OpenTelemetrySubsystemDefinition.EXPORTER.resolveModelAttribute(context, model).asString();
+        validateExporter(context, exporter);
 
-            CONFIG_SUPPLIER.accept(config);
+        final WildFlyOpenTelemetryConfig config = new WildFlyOpenTelemetryConfig(
+                OpenTelemetrySubsystemDefinition.SERVICE_NAME.resolveModelAttribute(context, model).asStringOrNull(),
+                exporter,
+                OpenTelemetrySubsystemDefinition.ENDPOINT.resolveModelAttribute(context, model).asStringOrNull(),
+                OpenTelemetrySubsystemDefinition.BATCH_DELAY.resolveModelAttribute(context, model).asLongOrNull(),
+                OpenTelemetrySubsystemDefinition.MAX_QUEUE_SIZE.resolveModelAttribute(context, model).asLongOrNull(),
+                OpenTelemetrySubsystemDefinition.MAX_EXPORT_BATCH_SIZE.resolveModelAttribute(context, model).asLongOrNull(),
+                OpenTelemetrySubsystemDefinition.EXPORT_TIMEOUT.resolveModelAttribute(context, model).asLongOrNull(),
+                OpenTelemetrySubsystemDefinition.SPAN_PROCESSOR_TYPE.resolveModelAttribute(context, model).asStringOrNull(),
+                OpenTelemetrySubsystemDefinition.SAMPLER.resolveModelAttribute(context, model).asStringOrNull(),
+                OpenTelemetrySubsystemDefinition.RATIO.resolveModelAttribute(context, model).asDoubleOrNull()
+        );
 
-            boolean mpTelemetryInstalled = context.getCapabilityServiceSupport()
-                    .hasCapability("org.wildfly.extension.microprofile.telemetry");
+        CONFIG_SUPPLIER.accept(config);
 
-            context.addStep(new AbstractDeploymentChainStep() {
-                @Override
-                public void execute(DeploymentProcessorTarget processorTarget) {
-                    // We need to disable vertx's DNS resolver as it causes failures under k8s
-                    if (System.getProperty(VERTX_DISABLE_DNS_RESOLVER) == null) {
-                        System.setProperty(VERTX_DISABLE_DNS_RESOLVER, "true");
-                    }
-                    processorTarget.addDeploymentProcessor(
-                            OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME,
-                            Phase.DEPENDENCIES,
-                            0x1910,
-                            new OpenTelemetryDependencyProcessor()
-                    );
-                    processorTarget.addDeploymentProcessor(
-                            OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME,
-                            Phase.POST_MODULE,
-                            0x3810,
-                            new OpenTelemetryDeploymentProcessor(!mpTelemetryInstalled, config));
+        boolean mpTelemetryInstalled = context.getCapabilityServiceSupport()
+                .hasCapability("org.wildfly.extension.microprofile.telemetry");
+
+        context.addStep(new AbstractDeploymentChainStep() {
+            @Override
+            public void execute(DeploymentProcessorTarget processorTarget) {
+                // We need to disable vertx's DNS resolver as it causes failures under k8s
+                if (System.getProperty(VERTX_DISABLE_DNS_RESOLVER) == null) {
+                    System.setProperty(VERTX_DISABLE_DNS_RESOLVER, "true");
                 }
-            }, OperationContext.Stage.RUNTIME);
-        } catch (InvalidAttributeValueException e) {
-            throw new RuntimeException(e);
-        }
+                processorTarget.addDeploymentProcessor(
+                        OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME,
+                        Phase.DEPENDENCIES,
+                        0x1910,
+                        new OpenTelemetryDependencyProcessor()
+                );
+                processorTarget.addDeploymentProcessor(
+                        OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME,
+                        Phase.POST_MODULE,
+                        0x3810,
+                        new OpenTelemetryDeploymentProcessor(!mpTelemetryInstalled, config));
+            }
+        }, OperationContext.Stage.RUNTIME);
 
     }
 }

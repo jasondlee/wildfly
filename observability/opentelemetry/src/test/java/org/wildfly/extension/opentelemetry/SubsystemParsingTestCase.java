@@ -66,8 +66,8 @@ public class SubsystemParsingTestCase extends AbstractSubsystemSchemaTest<OpenTe
         Assert.assertEquals(ADD, addSubsystem.get(OP).asString());
         Map<String, String> values = new HashMap<>();
         values.put("service-name", "test-service");
-        values.put("exporter-type", "jaeger");
-        values.put("endpoint", "http://localhost:14250");
+        values.put("exporter-type", "otlp");
+        values.put("endpoint", "http://localhost:4317");
         values.put("span-processor-type", "batch");
         values.put("batch-delay", "5000");
         values.put("max-queue-size", "2048");
