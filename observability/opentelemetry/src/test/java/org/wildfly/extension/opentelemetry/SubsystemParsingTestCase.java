@@ -36,11 +36,12 @@ public class SubsystemParsingTestCase extends AbstractSubsystemSchemaTest<OpenTe
     }
 
     public SubsystemParsingTestCase(OpenTelemetrySubsystemSchema schema) {
-        super(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME, new OpenTelemetrySubsystemExtension(), schema, OpenTelemetrySubsystemSchema.CURRENT);
+        super(OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME, new OpenTelemetrySubsystemExtension(), schema,
+                OpenTelemetrySubsystemSchema.CURRENT);
     }
 
     @Test
-    public void testInvalidExporter() throws Exception {
+    public void testInvalidExporter() {
         Assert.assertThrows(XMLStreamException.class, () -> this.parse(readResource("invalid-exporter.xml")));
     }
 
@@ -81,7 +82,7 @@ public class SubsystemParsingTestCase extends AbstractSubsystemSchemaTest<OpenTe
             String value = entry.getValue();
 
             ModelNode node = addSubsystem.get(key);
-            Assert.assertTrue(node.getType().equals(ModelType.EXPRESSION));
+            Assert.assertEquals(node.getType(), ModelType.EXPRESSION);
             Assert.assertEquals("${test." + key + ":" + value + "}", node.asString());
             Assert.assertEquals(value, node.asExpression().resolveString());
         }

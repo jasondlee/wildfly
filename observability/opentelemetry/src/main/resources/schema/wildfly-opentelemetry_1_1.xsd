@@ -6,10 +6,10 @@
   -->
 
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           targetNamespace="urn:wildfly:opentelemetry:1.0"
-           xmlns="urn:wildfly:opentelemetry:1.0"
+           targetNamespace="urn:wildfly:opentelemetry:1.1"
+           xmlns="urn:wildfly:opentelemetry:1.1"
            elementFormDefault="qualified"
-           version="1.0">
+           version="1.1">
 
     <xs:element name="subsystem">
         <xs:complexType>
@@ -21,15 +21,14 @@
                         </xs:documentation>
                     </xs:annotation>
                     <xs:complexType>
-                        <xs:attribute name="type" default="jaeger">
+                        <xs:attribute name="type" default="otlp">
                             <xs:annotation>
                                 <xs:documentation>
-                                    The type of exporter to use. Can be either 'jaeger' or 'otlp'.
+                                    The type of exporter to use. Currently, the only supported value is 'otlp'.
                                 </xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
-                                    <xs:enumeration value="jaeger"/>
                                     <xs:enumeration value="otlp"/>
                                 </xs:restriction>
                             </xs:simpleType>
