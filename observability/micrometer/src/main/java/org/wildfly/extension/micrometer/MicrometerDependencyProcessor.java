@@ -4,8 +4,8 @@
  */
 package org.wildfly.extension.micrometer;
 
-import static org.wildfly.extension.micrometer.MicrometerSubsystemDefinition.EXPORTED_MODULES;
-import static org.wildfly.extension.micrometer.MicrometerSubsystemDefinition.MODULES;
+import static org.wildfly.extension.micrometer.MicrometerSubsystemRegistrar.EXPORTED_MODULES;
+import static org.wildfly.extension.micrometer.MicrometerSubsystemRegistrar.MODULES;
 
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;

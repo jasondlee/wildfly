@@ -5,11 +5,9 @@
 
 package org.wildfly.extension.micrometer;
 
-import static org.wildfly.extension.micrometer.MicrometerExtension.WELD_CAPABILITY_NAME;
 import static org.wildfly.extension.micrometer.MicrometerExtensionLogger.MICROMETER_LOGGER;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import org.jboss.as.controller.capability.CapabilityServiceSupport;
@@ -24,16 +22,18 @@ import org.wildfly.extension.micrometer.api.MicrometerCdiExtension;
 import org.wildfly.extension.micrometer.registry.WildFlyRegistry;
 
 class MicrometerDeploymentProcessor implements DeploymentUnitProcessor {
+    static final String WELD_CAPABILITY_NAME = "org.wildfly.weld";
+
     private final boolean exposeAnySubsystem;
     private final List<String> exposedSubsystems;
-    private final Supplier<WildFlyRegistry> registrySupplier;
+    private final WildFlyRegistry wildFlyRegistry;
 
     MicrometerDeploymentProcessor(boolean exposeAnySubsystem,
                                   List<String> exposedSubsystems,
-                                  Supplier<WildFlyRegistry> registrySupplier) {
+                                  WildFlyRegistry registry) {
         this.exposeAnySubsystem = exposeAnySubsystem;
         this.exposedSubsystems = exposedSubsystems;
-        this.registrySupplier = registrySupplier;
+        this.wildFlyRegistry = registry;
     }
 
     @Override
@@ -44,7 +44,6 @@ class MicrometerDeploymentProcessor implements DeploymentUnitProcessor {
                 deploymentPhaseContext,
                 deploymentUnit.getAttachment(DeploymentModelUtils.DEPLOYMENT_RESOURCE),
                 deploymentUnit.getAttachment(DeploymentModelUtils.MUTABLE_REGISTRATION_ATTACHMENT),
-                registrySupplier,
                 exposeAnySubsystem,
                 exposedSubsystems);
 
@@ -65,12 +64,7 @@ class MicrometerDeploymentProcessor implements DeploymentUnitProcessor {
             if (!weldCapability.isPartOfWeldDeployment(deploymentUnit)) {
                 MICROMETER_LOGGER.noCdiDeployment();
             } else {
-                WildFlyRegistry registry = registrySupplier.get();
-                if (registry == null) {
-                    throw new DeploymentUnitProcessingException(new IllegalStateException());
-                }
-
-                weldCapability.registerExtensionInstance(new MicrometerCdiExtension((MeterRegistry) registry), deploymentUnit);
+                weldCapability.registerExtensionInstance(new MicrometerCdiExtension((MeterRegistry) wildFlyRegistry), deploymentUnit);
             }
         } catch (CapabilityServiceSupport.NoSuchCapabilityException e) {
             //We should not be here since the subsystem depends on weld capability. Just in case ...
