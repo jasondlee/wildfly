@@ -11,6 +11,7 @@ import org.jboss.as.controller.PersistentSubsystemSchema;
 import org.jboss.as.controller.SubsystemSchema;
 import org.jboss.as.controller.xml.VersionedNamespace;
 import org.jboss.staxmapper.IntVersion;
+import org.wildfly.extension.micrometer.otlp.OtlpRegistryDefinitionRegistrar;
 
 public enum MicrometerSubsystemSchema implements PersistentSubsystemSchema<MicrometerSubsystemSchema> {
     VERSION_1_0(1, 0), // WildFly 28
@@ -33,9 +34,15 @@ public enum MicrometerSubsystemSchema implements PersistentSubsystemSchema<Micro
 
     @Override
     public PersistentResourceXMLDescription getXMLDescription() {
-        return factory(this)
+        PersistentResourceXMLDescription.Factory factory = factory(this);
+
+        return factory
                 .builder(MicrometerSubsystemRegistrar.PATH)
                 .addAttributes(MicrometerSubsystemRegistrar.ATTRIBUTES)
+                .addChild(factory.builder(OtlpRegistryDefinitionRegistrar.PATH)
+                        .addAttributes(OtlpRegistryDefinitionRegistrar.ATTRIBUTES.stream())
+                        .setXmlElementName("otlp-registry")
+                        .build())
                 .build();
     }
 }
