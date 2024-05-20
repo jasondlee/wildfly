@@ -5,10 +5,10 @@
 package org.wildfly.test.integration.observability.container;
 
 import java.util.List;
+
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
-
 import org.junit.Assert;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
