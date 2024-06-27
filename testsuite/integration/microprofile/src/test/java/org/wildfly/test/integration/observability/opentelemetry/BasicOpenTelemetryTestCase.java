@@ -20,10 +20,13 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.wildfly.test.integration.observability.arquillian.TestContainer;
+import org.wildfly.test.integration.observability.container.OpenTelemetryCollectorContainer;
 import org.wildfly.test.integration.observability.setuptask.OpenTelemetrySetupTask;
 
 @RunWith(Arquillian.class)
 @ServerSetup(OpenTelemetrySetupTask.class)
+@TestContainer(OpenTelemetryCollectorContainer.class)
 public class BasicOpenTelemetryTestCase  {
     @Deployment
     public static WebArchive getDeployment() {
