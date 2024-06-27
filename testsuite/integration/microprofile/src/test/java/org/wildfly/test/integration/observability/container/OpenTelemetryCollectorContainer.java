@@ -21,8 +21,7 @@ import org.testcontainers.utility.MountableFile;
 import org.wildfly.test.integration.observability.opentelemetry.jaeger.JaegerTrace;
 
 public class OpenTelemetryCollectorContainer extends BaseContainer<OpenTelemetryCollectorContainer> {
-    private static OpenTelemetryCollectorContainer INSTANCE = null;
-    private static JaegerContainer jaegerContainer;
+    private JaegerContainer jaegerContainer;
 
     public static final int OTLP_GRPC_PORT = 4317;
     public static final int OTLP_HTTP_PORT = 4318;
@@ -46,30 +45,13 @@ public class OpenTelemetryCollectorContainer extends BaseContainer<OpenTelemetry
                                 "org/wildfly/test/integration/observability/container/otel-collector-config.yaml"),
                         OpenTelemetryCollectorContainer.OTEL_COLLECTOR_CONFIG_YAML)
                 .withCommand("--config " + OpenTelemetryCollectorContainer.OTEL_COLLECTOR_CONFIG_YAML);
-        jaegerContainer = JaegerContainer.getInstance();
+        jaegerContainer = new JaegerContainer();
     }
-/*
-
-    @NotNull
-    public static synchronized OpenTelemetryCollectorContainer getInstance() {
-        if (INSTANCE == null) {
-            jaegerContainer = JaegerContainer.getInstance();
-
-            INSTANCE = new OpenTelemetryCollectorContainer()
-                    .withNetwork(Network.SHARED)
-                    .withCopyToContainer(MountableFile.forClasspathResource(
-                                    "org/wildfly/test/integration/observability/container/otel-collector-config.yaml"),
-                            OpenTelemetryCollectorContainer.OTEL_COLLECTOR_CONFIG_YAML)
-                    .withCommand("--config " + OpenTelemetryCollectorContainer.OTEL_COLLECTOR_CONFIG_YAML);
-            INSTANCE.start();
-        }
-        return INSTANCE;
-    }
-*/
 
     @Override
     public void start() {
         super.start();
+        jaegerContainer.start();
         otlpGrpcEndpoint = "http://localhost:" + getMappedPort(OTLP_GRPC_PORT);
         otlpHttpEndpoint = "http://localhost:" + getMappedPort(OTLP_HTTP_PORT);
         prometheusUrl = "http://localhost:" + getMappedPort(PROMETHEUS_PORT) + "/metrics";
@@ -77,11 +59,7 @@ public class OpenTelemetryCollectorContainer extends BaseContainer<OpenTelemetry
 
     @Override
     public synchronized void stop() {
-        if (jaegerContainer != null) {
-            jaegerContainer.stop();
-            jaegerContainer = null;
-        }
-        INSTANCE = null;
+        jaegerContainer.stop();
         super.stop();
     }
 

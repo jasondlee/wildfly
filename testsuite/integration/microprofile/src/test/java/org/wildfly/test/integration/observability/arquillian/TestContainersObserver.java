@@ -4,6 +4,8 @@
  */
 package org.wildfly.test.integration.observability.arquillian;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.jboss.arquillian.core.api.InstanceProducer;
 import org.jboss.arquillian.core.api.annotation.ApplicationScoped;
 import org.jboss.arquillian.core.api.annotation.Inject;
@@ -16,17 +18,17 @@ import org.testcontainers.containers.GenericContainer;
 public class TestContainersObserver {
     @Inject
     @ApplicationScoped
-    private InstanceProducer<GenericContainer<?>> containerWrapper;
+    protected InstanceProducer<AtomicReference<GenericContainer<?>>> containerWrapper;
 
-    public void createAndStartContainer(@Observes BeforeClass beforeClass) {
+    public void createContainer(@Observes BeforeClass beforeClass) {
         TestClass javaClass = beforeClass.getTestClass();
         TestContainer tcAnno = javaClass.getAnnotation(TestContainer.class);
+        System.err.println("***** " + "Test class = " + javaClass.getJavaClass());
+        System.err.println("***** " + "  tcAnno = " + tcAnno);
         if (tcAnno != null) {
             Class<? extends GenericContainer<?>> clazz = tcAnno.value();
             try {
-                GenericContainer<?> instance = clazz.getDeclaredConstructor().newInstance();
-                instance.start();
-                containerWrapper.set(instance);
+                containerWrapper.set(new AtomicReference<>(clazz.getDeclaredConstructor().newInstance()));
             } catch (Exception e) { //Clean up
                 throw new RuntimeException(e);
             }
@@ -34,9 +36,14 @@ public class TestContainersObserver {
     }
 
     public void stopContainer(@Observes AfterClass afterClass) {
-        GenericContainer<?> container = containerWrapper.get();
-        if (container != null) {
-            container.stop();
+        System.err.println("***** " + "  After test class = " + afterClass.getTestClass().getJavaClass());
+        AtomicReference<GenericContainer<?>> reference = containerWrapper.get();
+        if (reference != null) {
+            GenericContainer<?> container = reference.get();
+            if (container != null) {
+                container.stop();
+            }
+            containerWrapper.set(new AtomicReference<>()); // Clear out old container
         }
     }
 }
