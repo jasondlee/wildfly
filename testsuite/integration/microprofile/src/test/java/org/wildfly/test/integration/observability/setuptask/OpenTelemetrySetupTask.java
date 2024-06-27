@@ -4,12 +4,12 @@
  */
 package org.wildfly.test.integration.observability.setuptask;
 
+import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.as.arquillian.container.ManagementClient;
 import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.as.test.shared.ServerReload;
 import org.jboss.as.test.shared.util.AssumeTestGroupUtil;
 import org.jboss.dmr.ModelNode;
-import org.wildfly.test.integration.observability.TestContainer;
 import org.wildfly.test.integration.observability.container.OpenTelemetryCollectorContainer;
 
 public class OpenTelemetrySetupTask extends AbstractSetupTask {
@@ -19,8 +19,8 @@ public class OpenTelemetrySetupTask extends AbstractSetupTask {
     private boolean extensionAdded = false;
     private boolean subsystemAdded = false;
 
-    @TestContainer
-    private OpenTelemetryCollectorContainer otelContainer;
+    @ArquillianResource
+    protected OpenTelemetryCollectorContainer otelContainer;
 
     @Override
     public void setup(final ManagementClient managementClient, final String containerId) throws Exception {

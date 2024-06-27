@@ -6,12 +6,12 @@ package org.wildfly.test.integration.observability.setuptask;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.STATISTICS_ENABLED;
 
+import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.as.arquillian.container.ManagementClient;
 import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.as.test.shared.ServerReload;
 import org.jboss.as.test.shared.util.AssumeTestGroupUtil;
 import org.jboss.dmr.ModelNode;
-import org.wildfly.test.integration.observability.TestContainer;
 import org.wildfly.test.integration.observability.container.OpenTelemetryCollectorContainer;
 
 public class MicrometerSetupTask extends AbstractSetupTask {
@@ -21,8 +21,8 @@ public class MicrometerSetupTask extends AbstractSetupTask {
     private boolean extensionAdded = false;
     private boolean subsystemAdded = false;
 
-    @TestContainer
-    private OpenTelemetryCollectorContainer otelCollector;
+    @ArquillianResource
+    protected OpenTelemetryCollectorContainer otelCollector;
 
     @Override
     public void setup(final ManagementClient managementClient, String containerId) throws Exception {

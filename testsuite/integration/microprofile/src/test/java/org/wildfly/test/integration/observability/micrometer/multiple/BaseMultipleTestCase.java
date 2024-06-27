@@ -14,11 +14,12 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.as.arquillian.api.ServerSetup;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
-import org.wildfly.test.integration.observability.TestContainer;
+import org.wildfly.test.integration.observability.arquillian.TestContainer;
 import org.wildfly.test.integration.observability.container.OpenTelemetryCollectorContainer;
 import org.wildfly.test.integration.observability.container.PrometheusMetric;
 import org.wildfly.test.integration.observability.setuptask.MicrometerSetupTask;
@@ -26,12 +27,13 @@ import org.wildfly.test.integration.observability.setuptask.MicrometerSetupTask;
 @RunWith(Arquillian.class)
 @ServerSetup(MicrometerSetupTask.class)
 @RunAsClient
+@TestContainer(OpenTelemetryCollectorContainer.class)
 public abstract class BaseMultipleTestCase {
     protected static final String SERVICE_ONE = "service-one";
     protected static final String SERVICE_TWO = "service-two";
     protected static final int REQUEST_COUNT = 5;
 
-    @TestContainer
+    @ArquillianResource
     protected OpenTelemetryCollectorContainer otelContainer;
 
     protected void makeRequests(URI service) throws URISyntaxException {

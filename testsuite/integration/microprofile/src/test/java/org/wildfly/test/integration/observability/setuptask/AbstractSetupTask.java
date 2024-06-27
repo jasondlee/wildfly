@@ -6,14 +6,14 @@ package org.wildfly.test.integration.observability.setuptask;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUBSYSTEM;
 
+import java.io.IOException;
+
 import org.jboss.as.arquillian.api.ServerSetupTask;
 import org.jboss.as.arquillian.container.ManagementClient;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.Operation;
 import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.dmr.ModelNode;
-
-import java.io.IOException;
 
 public abstract class AbstractSetupTask implements ServerSetupTask {
     protected ModelNode clearAttribute(String address, String attributeName) {

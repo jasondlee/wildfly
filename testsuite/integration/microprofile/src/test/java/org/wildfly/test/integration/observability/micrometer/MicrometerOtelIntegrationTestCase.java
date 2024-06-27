@@ -31,7 +31,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.wildfly.test.integration.observability.TestContainer;
+import org.wildfly.test.integration.observability.arquillian.TestContainer;
 import org.wildfly.test.integration.observability.container.OpenTelemetryCollectorContainer;
 import org.wildfly.test.integration.observability.container.PrometheusMetric;
 import org.wildfly.test.integration.observability.setuptask.MicrometerSetupTask;
@@ -39,14 +39,14 @@ import org.wildfly.test.integration.observability.setuptask.MicrometerSetupTask;
 @RunWith(Arquillian.class)
 @ServerSetup(MicrometerSetupTask.class)
 @RunAsClient
+@TestContainer(OpenTelemetryCollectorContainer.class)
 public class MicrometerOtelIntegrationTestCase {
     public static final int REQUEST_COUNT = 5;
     @ArquillianResource
     private URL url;
     @Inject
     private MeterRegistry meterRegistry;
-
-    @TestContainer
+    @ArquillianResource
     OpenTelemetryCollectorContainer otelContainer;
 
     static final String WEB_XML =

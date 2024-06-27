@@ -35,6 +35,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.wildfly.test.integration.microprofile.faulttolerance.micrometer.deployment.FaultTolerantApplication;
 import org.wildfly.test.integration.microprofile.faulttolerance.micrometer.deployment.TimeoutService;
+import org.wildfly.test.integration.observability.arquillian.TestContainer;
+import org.wildfly.test.integration.observability.container.OpenTelemetryCollectorContainer;
 import org.wildfly.test.integration.observability.setuptask.MicrometerSetupTask;
 
 /**
@@ -46,6 +48,7 @@ import org.wildfly.test.integration.observability.setuptask.MicrometerSetupTask;
  */
 @RunWith(Arquillian.class)
 @ServerSetup(MicrometerSetupTask.class)
+@TestContainer(OpenTelemetryCollectorContainer.class)
 public class FaultToleranceMicrometerIntegrationTestCase {
 
     // Let's use a slightly higher number of invocations, so we can at times differentiate between stale read and other problems

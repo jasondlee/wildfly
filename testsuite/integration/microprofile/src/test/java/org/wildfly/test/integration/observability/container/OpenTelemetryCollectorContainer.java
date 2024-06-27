@@ -35,7 +35,6 @@ public class OpenTelemetryCollectorContainer extends BaseContainer<OpenTelemetry
     private String otlpHttpEndpoint;
     private String prometheusUrl;
 
-
     public OpenTelemetryCollectorContainer() {
         super("OpenTelemetryCollector",
                 "otel/opentelemetry-collector",

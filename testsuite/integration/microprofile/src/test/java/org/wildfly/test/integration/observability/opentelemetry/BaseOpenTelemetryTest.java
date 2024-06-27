@@ -15,14 +15,15 @@ import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.wildfly.test.integration.observability.TestContainer;
+import org.wildfly.test.integration.observability.arquillian.TestContainer;
 import org.wildfly.test.integration.observability.container.OpenTelemetryCollectorContainer;
 import org.wildfly.test.integration.observability.opentelemetry.application.OtelApplication;
 import org.wildfly.test.integration.observability.opentelemetry.application.OtelService1;
 import org.wildfly.test.integration.observability.opentelemetry.jaeger.JaegerResponse;
 
+@TestContainer(OpenTelemetryCollectorContainer.class)
 public abstract class BaseOpenTelemetryTest {
-    @TestContainer
+    @ArquillianResource
     protected OpenTelemetryCollectorContainer otelContainer;
 
 
