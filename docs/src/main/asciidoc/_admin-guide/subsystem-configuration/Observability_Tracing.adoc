@@ -15,10 +15,11 @@ endif::[]
 This extension is not included in any of the standalone configurations included in the WildFly distribution.
 To enable, the administrator must run the following CLI commands:
 
-```
- $ jboss-cli.sh -c "/extension=org.wildfly.extension.opentelemetry:add()"
- $ jboss-cli.sh -c "/subsystem=opentelemetry:add()"
-```
+[source,options=nowrap]
+-----
+[standalone@localhost:9990 /]  /extension=org.wildfly.extension.opentelemetry:add()
+[standalone@localhost:9990 /]  /subsystem=opentelemetry:add()
+-----
 
 == Configuration
 
