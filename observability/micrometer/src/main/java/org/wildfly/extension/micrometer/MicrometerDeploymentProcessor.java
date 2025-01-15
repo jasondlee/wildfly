@@ -8,7 +8,7 @@ package org.wildfly.extension.micrometer;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.DEPLOYMENT;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUBDEPLOYMENT;
 import static org.wildfly.extension.micrometer.MicrometerExtensionLogger.MICROMETER_LOGGER;
-import static org.wildfly.extension.micrometer.MicrometerSubsystemRegistrar.MICROMETER_COLLECTOR_RUNTIME_CAPABILITY;
+import static org.wildfly.extension.micrometer.MicrometerSubsystemRegistrar.MICROMETER_SERVICE_RUNTIME_CAPABILITY;
 
 import java.util.function.Supplier;
 
@@ -25,38 +25,34 @@ import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.as.weld.WeldCapability;
 import org.wildfly.extension.micrometer.api.MicrometerCdiExtension;
 import org.wildfly.extension.micrometer.metrics.MetricRegistration;
-import org.wildfly.extension.micrometer.metrics.MicrometerCollector;
 import org.wildfly.subsystem.service.ServiceDependency;
 import org.wildfly.subsystem.service.ServiceInstaller;
 
 class MicrometerDeploymentProcessor implements DeploymentUnitProcessor {
     static final String WELD_CAPABILITY_NAME = "org.wildfly.weld";
 
-    private final MicrometerSubsystemRegistrar.MicrometerDeploymentConfiguration config;
-
-    MicrometerDeploymentProcessor(MicrometerSubsystemRegistrar.MicrometerDeploymentConfiguration config) {
-        this.config = config;
+    MicrometerDeploymentProcessor() {
     }
 
     @Override
     public void deploy(DeploymentPhaseContext deploymentPhaseContext) throws DeploymentUnitProcessingException {
         final DeploymentUnit deploymentUnit = deploymentPhaseContext.getDeploymentUnit();
 
-        ServiceDependency<MicrometerCollector> collector = ServiceDependency.on(MICROMETER_COLLECTOR_RUNTIME_CAPABILITY.getCapabilityServiceName());
-        Supplier<MetricRegistration> factory = () -> collector.get().collectResourceMetrics(
+        ServiceDependency<MicrometerService> serviceDependency =
+            ServiceDependency.on(MICROMETER_SERVICE_RUNTIME_CAPABILITY.getCapabilityServiceName());
+        Supplier<MetricRegistration> factory = () -> serviceDependency.get().collectResourceMetrics(
                 deploymentUnit.getAttachment(DeploymentModelUtils.DEPLOYMENT_RESOURCE),
                 deploymentUnit.getAttachment(DeploymentModelUtils.MUTABLE_REGISTRATION_ATTACHMENT),
-                createDeploymentAddressPrefix(deploymentUnit)::append,
-                this.config.getSubsystemFilter());
+                createDeploymentAddressPrefix(deploymentUnit)::append);
         ServiceInstaller.builder(factory)
                 .requires(ServiceDependency.on(DeploymentCompleteServiceProcessor.serviceName(deploymentUnit.getServiceName())))
-                .requires(collector)
+                .requires(serviceDependency)
                 .asActive()
                 .onStop(MetricRegistration::unregister)
                 .build()
                 .install(deploymentPhaseContext);
 
-        registerCdiExtension(deploymentPhaseContext);
+        registerCdiExtension(deploymentPhaseContext, serviceDependency.get());
     }
 
     @Override
@@ -71,7 +67,7 @@ class MicrometerDeploymentProcessor implements DeploymentUnitProcessor {
         }
     }
 
-    private void registerCdiExtension(DeploymentPhaseContext deploymentPhaseContext) throws DeploymentUnitProcessingException {
+    private void registerCdiExtension(DeploymentPhaseContext deploymentPhaseContext, MicrometerService micrometerService) throws DeploymentUnitProcessingException {
         DeploymentUnit deploymentUnit = deploymentPhaseContext.getDeploymentUnit();
         try {
             CapabilityServiceSupport support = deploymentUnit.getAttachment(Attachments.CAPABILITY_SERVICE_SUPPORT);
@@ -80,7 +76,8 @@ class MicrometerDeploymentProcessor implements DeploymentUnitProcessor {
             if (!weldCapability.isPartOfWeldDeployment(deploymentUnit)) {
                 MICROMETER_LOGGER.noCdiDeployment();
             } else {
-                weldCapability.registerExtensionInstance(new MicrometerCdiExtension((MeterRegistry) config.getRegistry()), deploymentUnit);
+                weldCapability.registerExtensionInstance(new MicrometerCdiExtension(
+                    (MeterRegistry) micrometerService.getMicrometerRegistry()), deploymentUnit);
             }
         } catch (CapabilityServiceSupport.NoSuchCapabilityException e) {
             //We should not be here since the subsystem depends on weld capability. Just in case ...
