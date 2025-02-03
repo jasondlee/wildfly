@@ -6,10 +6,10 @@
   -->
 
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           targetNamespace="urn:wildfly:opentelemetry:1.1"
-           xmlns="urn:wildfly:opentelemetry:1.1"
+           targetNamespace="urn:wildfly:opentelemetry:community:2.0"
+           xmlns="urn:wildfly:opentelemetry:community:2.0"
            elementFormDefault="qualified"
-           version="1.1">
+           version="2.0">
 
     <xs:element name="subsystem">
         <xs:complexType>
@@ -17,7 +17,7 @@
                 <xs:element name="exporter" minOccurs="0">
                     <xs:annotation>
                         <xs:documentation>
-                            Configures the exporter used to export traces
+                            Configures the exporter used to export signals
                         </xs:documentation>
                     </xs:annotation>
                     <xs:complexType>
@@ -62,10 +62,10 @@
                                 </xs:restriction>
                             </xs:simpleType>
                         </xs:attribute>
-                        <xs:attribute type="xs:integer" name="batch-delay" default="5000">
+                        <xs:attribute type="xs:integer" name="export-interval" default="5000">
                             <xs:annotation>
                                 <xs:documentation>
-                                    The interval, in milliseconds, between two consecutive exports. Default is 5000.
+                                    The interval, in milliseconds, between two consecutive exports.
                                 </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>
@@ -113,6 +113,80 @@
                                 <xs:documentation>
                                     For the ratio-based sampler, this configures the percentage of traces to sample.
                                     Must be between 0.0 and 1.0.
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="metrics" minOccurs="0">
+                    <xs:complexType>
+                        <xs:attribute type="xs:integer" name="export-interval" default="60000">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    The interval, in milliseconds, between two consecutive exports.
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="exemplar-filter" default="TRACE_BASED">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    The filter for exemplar sampling. Can be ALWAYS_OFF, ALWAYS_ON or TRACE_BASED.
+                                </xs:documentation>
+                            </xs:annotation>
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="ALWAYS_OFF"/>
+                                    <xs:enumeration value="ALWAYS_ON"/>
+                                    <xs:enumeration value="TRACE_BASED"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute type="xs:integer" name="cardinality-limit">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    If set, configure cardinality limit. The value dictates the maximum number of
+                                    distinct points per metric. This option is experimental and subject to change or
+                                    removal.
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="temporality" default="CUMULATIVE">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    The preferred output aggregation temporality. Options include DELTA, LOWMEMORY, and
+                                    CUMULATIVE.
+                                </xs:documentation>
+                            </xs:annotation>
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="DELTA"/>
+                                    <xs:enumeration value="LOWMEMORY"/>
+                                    <xs:enumeration value="CUMULATIVE"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="histogram-aggregation" default="EXPLICIT_BUCKET_HISTOGRAM">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    The preferred default histogram aggregation. Options include
+                                    BASE2_EXPONENTIAL_BUCKET_HISTOGRAM and EXPLICIT_BUCKET_HISTOGRAM.
+                                </xs:documentation>
+                            </xs:annotation>
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="BASE2_EXPONENTIAL_BUCKET_HISTOGRAM"/>
+                                    <xs:enumeration value="EXPLICIT_BUCKET_HISTOGRAM"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="logs" minOccurs="0">
+                    <xs:complexType>
+                        <xs:attribute type="xs:integer" name="export-interval" default="1000">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    The interval, in milliseconds, between two consecutive exports.
                                 </xs:documentation>
                             </xs:annotation>
                         </xs:attribute>

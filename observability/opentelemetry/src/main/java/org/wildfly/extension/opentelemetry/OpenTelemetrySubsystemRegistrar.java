@@ -6,19 +6,30 @@
 package org.wildfly.extension.opentelemetry;
 
 import static org.jboss.as.weld.Capabilities.WELD_CAPABILITY_NAME;
-import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.DEFAULT_BATCH_DELAY;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.AGGREGATION_EXPLICIT;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.ALLOWED_EXEMPLAR_FILTERS;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.ALLOWED_HISTOGRAM_AGGREGATION;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.ALLOWED_TEMPORALITY;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.BATCH_DELAY;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.DEFAULT_EXPORT_TIMEOUT;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.DEFAULT_MAX_EXPORT_BATCH_SIZE;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.DEFAULT_MAX_QUEUE_SIZE;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.DEFAULT_METRICS_EXPORT_INTERVAL;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.DEFAULT_TRACE_EXPORT_INTERVAL;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.EXEMPLAR_FILTER_TRACE_BASED;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.EXPORTER_JAEGER;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.EXPORTER_OTLP;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.EXPORT_INTERVAL;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.GROUP_EXPORTER;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.GROUP_LOGS;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.GROUP_METRICS;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.GROUP_SAMPLER;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.GROUP_SPAN_PROCESSOR;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.OPENTELEMETRY_CAPABILITY_NAME;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.SPAN_PROCESSOR_BATCH;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.SUBSYSTEM_PATH;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.SUBSYSTEM_RESOLVER;
+import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.TEMPORALITY_CUMULATIVE;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationConstants.VERTX_DISABLE_DNS_RESOLVER;
 import static org.wildfly.extension.opentelemetry.OpenTelemetryExtensionLogger.OTEL_LOGGER;
 
@@ -35,9 +46,11 @@ import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.SubsystemRegistration;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.operations.validation.StringAllowedValuesValidator;
+import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.as.server.deployment.Phase;
+import org.jboss.as.version.Stability;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.wildfly.extension.opentelemetry.api.WildFlyOpenTelemetryConfig;
@@ -98,12 +111,22 @@ class OpenTelemetrySubsystemRegistrar implements SubsystemResourceDefinitionRegi
             .setValidator(new StringAllowedValuesValidator(OpenTelemetryConfigurationConstants.ALLOWED_SPAN_PROCESSORS))
             .build();
 
-    public static final SimpleAttributeDefinition BATCH_DELAY = SimpleAttributeDefinitionBuilder
-            .create(OpenTelemetryConfigurationConstants.BATCH_DELAY, ModelType.LONG, true)
+    public static final SimpleAttributeDefinition TRACE_EXPORT_INTERVAL = SimpleAttributeDefinitionBuilder
+            .create(EXPORT_INTERVAL, ModelType.LONG, true)
+            .setStability(Stability.COMMUNITY)
             .setAllowExpression(true)
             .setAttributeGroup(GROUP_SPAN_PROCESSOR)
             .setRestartAllServices()
-            .setDefaultValue(new ModelNode(DEFAULT_BATCH_DELAY))
+            .setDefaultValue(new ModelNode(DEFAULT_TRACE_EXPORT_INTERVAL))
+            .build();
+
+    public static final SimpleAttributeDefinition TRACE_BATCH_DELAY = SimpleAttributeDefinitionBuilder
+            .create(BATCH_DELAY, ModelType.LONG, true)
+            .addFlag(AttributeAccess.Flag.ALIAS)
+            .setAllowExpression(true)
+            .setAttributeGroup(GROUP_SPAN_PROCESSOR)
+            .setRestartAllServices()
+            .setDefaultValue(new ModelNode(DEFAULT_TRACE_EXPORT_INTERVAL))
             .build();
 
     public static final SimpleAttributeDefinition MAX_QUEUE_SIZE = SimpleAttributeDefinitionBuilder
@@ -130,6 +153,9 @@ class OpenTelemetrySubsystemRegistrar implements SubsystemResourceDefinitionRegi
             .setDefaultValue(new ModelNode(DEFAULT_EXPORT_TIMEOUT))
             .build();
 
+
+    // *****************************************************************************************************************
+    // Tracing attributes
     public static final SimpleAttributeDefinition SAMPLER = SimpleAttributeDefinitionBuilder
             .create(OpenTelemetryConfigurationConstants.SAMPLER_TYPE, ModelType.STRING, true)
             .setAllowExpression(true)
@@ -154,9 +180,65 @@ class OpenTelemetrySubsystemRegistrar implements SubsystemResourceDefinitionRegi
             .setRestartAllServices()
             .build();
 
+    // *****************************************************************************************************************
+    // Metrics attributes
+    public static final SimpleAttributeDefinition METRICS_EXPORT_INTERVAL = SimpleAttributeDefinitionBuilder
+        .create(EXPORT_INTERVAL, ModelType.LONG, true)
+        .setAllowExpression(true)
+        .setAttributeGroup(GROUP_METRICS)
+        .setRestartAllServices()
+        .setDefaultValue(new ModelNode(DEFAULT_METRICS_EXPORT_INTERVAL))
+        .build();
+    public static final SimpleAttributeDefinition METRICS_EXEMPLAR_FILTER = SimpleAttributeDefinitionBuilder
+        .create(OpenTelemetryConfigurationConstants.EXEMPLAR_FILTER, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setAttributeGroup(GROUP_METRICS)
+        .setValidator(new StringAllowedValuesValidator(ALLOWED_EXEMPLAR_FILTERS))
+        .setDefaultValue(new ModelNode(EXEMPLAR_FILTER_TRACE_BASED))
+        .setRestartAllServices()
+        .build();
+    public static final SimpleAttributeDefinition METRICS_CARDINALITY_LIMIT = SimpleAttributeDefinitionBuilder
+        .create(OpenTelemetryConfigurationConstants.CARDINALITY_LIMIT, ModelType.LONG, true)
+        .setAllowExpression(true)
+        .setAttributeGroup(GROUP_METRICS)
+        .setRestartAllServices()
+        .build();
+    public static final SimpleAttributeDefinition METRICS_TEMPORALITY = SimpleAttributeDefinitionBuilder
+        .create(OpenTelemetryConfigurationConstants.TEMPORALITY, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setAttributeGroup(GROUP_METRICS)
+        .setValidator(new StringAllowedValuesValidator(ALLOWED_TEMPORALITY))
+        .setDefaultValue(new ModelNode(TEMPORALITY_CUMULATIVE))
+        .setRestartAllServices()
+        .build();
+    public static final SimpleAttributeDefinition METRICS_HISTOGRAM_AGGREGATION = SimpleAttributeDefinitionBuilder
+        .create(OpenTelemetryConfigurationConstants.HISTOGRAM_AGGREGATION, ModelType.STRING, true)
+        .setAllowExpression(true)
+        .setAttributeGroup(GROUP_METRICS)
+        .setValidator(new StringAllowedValuesValidator(ALLOWED_HISTOGRAM_AGGREGATION))
+        .setDefaultValue(new ModelNode(AGGREGATION_EXPLICIT))
+        .setRestartAllServices()
+        .build();
+
+    // *****************************************************************************************************************
+    // Log attributes
+    public static final SimpleAttributeDefinition LOGS_EXPORT_INTERVAL = SimpleAttributeDefinitionBuilder
+        .create(EXPORT_INTERVAL, ModelType.LONG, true)
+        .setAllowExpression(true)
+        .setAttributeGroup(GROUP_LOGS)
+        .setRestartAllServices()
+        .setDefaultValue(new ModelNode(DEFAULT_METRICS_EXPORT_INTERVAL))
+        .build();
+
     public static final List<AttributeDefinition> ATTRIBUTES = List.of(
-            SERVICE_NAME, EXPORTER, ENDPOINT, SPAN_PROCESSOR_TYPE, BATCH_DELAY, MAX_QUEUE_SIZE, MAX_EXPORT_BATCH_SIZE,
-            EXPORT_TIMEOUT, SAMPLER, RATIO
+        // General
+        SERVICE_NAME, EXPORTER, ENDPOINT,
+        // Tracing
+        SPAN_PROCESSOR_TYPE, TRACE_EXPORT_INTERVAL, MAX_QUEUE_SIZE, MAX_EXPORT_BATCH_SIZE, EXPORT_TIMEOUT, SAMPLER, RATIO,
+        // Metrics
+        METRICS_EXPORT_INTERVAL,
+        // Logs
+        LOGS_EXPORT_INTERVAL
     );
 
     private final AtomicReference<WildFlyOpenTelemetryConfig> openTelemetryConfig = new AtomicReference<>();
@@ -175,23 +257,24 @@ class OpenTelemetrySubsystemRegistrar implements SubsystemResourceDefinitionRegi
                 parent.registerSubsystemModel(ResourceDefinition.builder(ResourceRegistration.of(SUBSYSTEM_PATH),
                         SUBSYSTEM_RESOLVER).build());
         ResourceDescriptor descriptor = ResourceDescriptor.builder(SUBSYSTEM_RESOLVER)
-                .addCapability(OPENTELEMETRY_CAPABILITY)
-                .addCapability(OPENTELEMETRY_CONFIG_CAPABILITY)
-                .withRuntimeHandler(ResourceOperationRuntimeHandler.configureService(this))
-                .addAttributes(ATTRIBUTES)
-                .withAddOperationRestartFlag(OperationEntry.Flag.RESTART_ALL_SERVICES)
-                .withRemoveOperationRestartFlag(OperationEntry.Flag.RESTART_ALL_SERVICES)
-                .withDeploymentChainContributor(target -> {
-                    target.addDeploymentProcessor(OpenTelemetryConfigurationConstants.SUBSYSTEM_NAME,
-                            Phase.DEPENDENCIES,
-                            0x18C5, // TODO: Update once WF Core is updated
-                            new OpenTelemetryDependencyProcessor());
-                    target.addDeploymentProcessor(OpenTelemetryConfigurationConstants.SUBSYSTEM_NAME,
-                            Phase.POST_MODULE,
-                            0x3810, // TODO: Update once WF Core is updated
-                            new OpenTelemetryDeploymentProcessor(this.openTelemetryConfig::get));
-                })
-                .build();
+            .addCapability(OPENTELEMETRY_CAPABILITY)
+            .addCapability(OPENTELEMETRY_CONFIG_CAPABILITY)
+            .withRuntimeHandler(ResourceOperationRuntimeHandler.configureService(this))
+            .addAttributes(ATTRIBUTES)
+            .renameAttribute(TRACE_BATCH_DELAY, TRACE_EXPORT_INTERVAL)
+            .withAddOperationRestartFlag(OperationEntry.Flag.RESTART_ALL_SERVICES)
+            .withRemoveOperationRestartFlag(OperationEntry.Flag.RESTART_ALL_SERVICES)
+            .withDeploymentChainContributor(target -> {
+                target.addDeploymentProcessor(OpenTelemetryConfigurationConstants.SUBSYSTEM_NAME,
+                    Phase.DEPENDENCIES,
+                    0x18C5, // TODO: Update once WF Core is updated
+                    new OpenTelemetryDependencyProcessor());
+                target.addDeploymentProcessor(OpenTelemetryConfigurationConstants.SUBSYSTEM_NAME,
+                    Phase.POST_MODULE,
+                    0x3810, // TODO: Update once WF Core is updated
+                    new OpenTelemetryDeploymentProcessor(this.openTelemetryConfig::get));
+            })
+            .build();
 
         ManagementResourceRegistrar.of(descriptor).register(registration);
 
@@ -207,7 +290,7 @@ class OpenTelemetrySubsystemRegistrar implements SubsystemResourceDefinitionRegi
             .setServiceName(OpenTelemetrySubsystemRegistrar.SERVICE_NAME.resolveModelAttribute(context, model).asStringOrNull())
             .setExporter(exporter)
             .setOtlpEndpoint(OpenTelemetrySubsystemRegistrar.ENDPOINT.resolveModelAttribute(context, model).asStringOrNull())
-            .setBatchDelay(OpenTelemetrySubsystemRegistrar.BATCH_DELAY.resolveModelAttribute(context, model).asLongOrNull())
+            .setBatchDelay(OpenTelemetrySubsystemRegistrar.TRACE_BATCH_DELAY.resolveModelAttribute(context, model).asLongOrNull())
             .setMaxQueueSize(OpenTelemetrySubsystemRegistrar.MAX_QUEUE_SIZE.resolveModelAttribute(context, model).asLongOrNull())
             .setMaxExportBatchSize(OpenTelemetrySubsystemRegistrar.MAX_EXPORT_BATCH_SIZE.resolveModelAttribute(context, model).asLongOrNull())
             .setExportTimeout(OpenTelemetrySubsystemRegistrar.EXPORT_TIMEOUT.resolveModelAttribute(context, model).asLongOrNull())
