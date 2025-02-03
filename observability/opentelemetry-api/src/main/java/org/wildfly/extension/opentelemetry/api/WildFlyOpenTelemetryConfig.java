@@ -17,20 +17,33 @@ public final class WildFlyOpenTelemetryConfig implements OpenTelemetryConfig {
             NullaryServiceDescriptor.of("org.wildfly.extension.opentelemetry.config",
                 WildFlyOpenTelemetryConfig.class);
 
+    // Logging
+    public static final String OTEL_BLRP_MAX_EXPORT_BATCH_SIZE = "otel.blrp.max.export.batch.size";
+    public static final String OTEL_BLRP_MAX_QUEUE_SIZE = "otel.blrp.max.queue.size";
+    public static final String OTEL_BLRP_SCHEDULE_DELAY = "otel.blrp.schedule.delay";
+    public static final String OTEL_LOGS_EXPORTER = "otel.logs.exporter";
+
+    // Metrics
+    public static final String OTEL_METRICS_EXPORTER = "otel.metrics.exporter";
+
+    // Traces
     public static final String OTEL_BSP_MAX_EXPORT_BATCH_SIZE = "otel.bsp.max.export.batch.size";
     public static final String OTEL_BSP_MAX_QUEUE_SIZE = "otel.bsp.max.queue.size";
     public static final String OTEL_BSP_SCHEDULE_DELAY = "otel.bsp.schedule.delay";
-    public static final String OTEL_EXPORTER_OTLP_ENDPOINT = "otel.exporter.otlp.endpoint";
-    public static final String OTEL_EXPORTER_OTLP_PROTOCOL = "otel.exporter.otlp.protocol";
-    public static final String OTEL_EXPORTER_OTLP_TIMEOUT = "otel.exporter.otlp.timeout";
-    public static final String OTEL_LOGS_EXPORTER = "otel.logs.exporter";
     public static final String OTEL_PROPAGATORS = "otel.propagators";
-    public static final String OTEL_METRICS_EXPORTER = "otel.metrics.exporter";
-    public static final String OTEL_SDK_DISABLED = "otel.sdk.disabled";
-    public static final String OTEL_SERVICE_NAME = "otel.service.name";
     public static final String OTEL_TRACES_EXPORTER = "otel.traces.exporter";
     public static final String OTEL_TRACES_SAMPLER = "otel.traces.sampler";
     public static final String OTEL_TRACES_SAMPLER_ARG = "otel.traces.sampler.arg";
+
+    // Exporters
+    public static final String OTEL_EXPORTER_OTLP_COMPRESSION = "otel.exporter.otlp.compression";
+    public static final String OTEL_EXPORTER_OTLP_ENDPOINT = "otel.exporter.otlp.endpoint";
+    public static final String OTEL_EXPORTER_OTLP_PROTOCOL = "otel.exporter.otlp.protocol";
+    public static final String OTEL_EXPORTER_OTLP_TIMEOUT = "otel.exporter.otlp.timeout";
+
+    // General
+    public static final String OTEL_SDK_DISABLED = "otel.sdk.disabled";
+    public static final String OTEL_SERVICE_NAME = "otel.service.name";
 
     private final Map<String, String> properties;
     private final boolean mpTelemetryInstalled;

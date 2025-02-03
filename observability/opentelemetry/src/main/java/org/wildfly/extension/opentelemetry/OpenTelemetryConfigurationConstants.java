@@ -34,8 +34,14 @@ public final class OpenTelemetryConfigurationConstants {
     public static final String SAMPLER_RATIO = "ratio";
     public static final String TYPE = "type";
 
+    public static final String EXPORT_INTERVAL = "export-interval";
+    public static final String EXEMPLAR_FILTER = "exemplar-filter";
+    public static final String CARDINALITY_LIMIT = "cardinality-limit";
+
     // Groups
     public static final String GROUP_EXPORTER = "exporter";
+    public static final String GROUP_LOGS = "logs";
+    public static final String GROUP_METRICS = "metrics";
     public static final String GROUP_SPAN_PROCESSOR = "span-processor";
     public static final String GROUP_SAMPLER = "sampler";
 
@@ -46,12 +52,32 @@ public final class OpenTelemetryConfigurationConstants {
     public static final String EXPORTER_JAEGER = "jaeger";
     public static final String EXPORTER_OTLP = "otlp";
     public static final String DEFAULT_OTLP_ENDPOINT = "http://localhost:4317";
-    public static final int DEFAULT_BATCH_DELAY = 5000;
     public static final int DEFAULT_EXPORT_TIMEOUT = 30000;
+
+    public static final int DEFAULT_LOGS_EXPORT_INTERVAL = 1000;
+    public static final int DEFAULT_METRICS_EXPORT_INTERVAL = 60000;
+    public static final int DEFAULT_TRACE_EXPORT_INTERVAL = 5000;
+
     public static final int DEFAULT_MAX_QUEUE_SIZE = 2048;
     public static final int DEFAULT_MAX_EXPORT_BATCH_SIZE = 512;
 
+    public static final String EXEMPLAR_FILTER_ALWAYS_ON = "ALWAYS_ON";
+    public static final String EXEMPLAR_FILTER_ALWAYS_OFF = "ALWAYS_OFF";
+    public static final String EXEMPLAR_FILTER_TRACE_BASED = "ALWAYS_OFF`, `ALWAYS_ON` or `TRACE_BASED";
+
+    public static final String TEMPORALITY = "temporality";
+    public static final String TEMPORALITY_DELTA = "DELTA";
+    public static final String TEMPORALITY_LOWMEMORY = "LOWMEMORY";
+    public static final String TEMPORALITY_CUMULATIVE = "CUMULATIVE";
+
+    public static final String HISTOGRAM_AGGREGATION = "histogram-aggregation";
+    public static final String AGGREGATION_EXPONENTIAL = "BASE2_EXPONENTIAL_BUCKET_HISTOGRAM";
+    public static final String AGGREGATION_EXPLICIT = "EXPLICIT_BUCKET_HISTOGRAM";
+
+    public static final String[] ALLOWED_HISTOGRAM_AGGREGATION = {AGGREGATION_EXPONENTIAL, AGGREGATION_EXPLICIT};
+    public static final String[] ALLOWED_EXEMPLAR_FILTERS = {EXEMPLAR_FILTER_ALWAYS_ON, EXEMPLAR_FILTER_ALWAYS_OFF, EXEMPLAR_FILTER_TRACE_BASED};
     public static final String[] ALLOWED_EXPORTERS = {EXPORTER_JAEGER, EXPORTER_OTLP};
+    public static final String[] ALLOWED_TEMPORALITY = {TEMPORALITY_DELTA, TEMPORALITY_LOWMEMORY, TEMPORALITY_CUMULATIVE};
     public static final String SAMPLER_ON = "on";
     public static final String SAMPLER_OFF = "off";
     public static final String[] ALLOWED_SAMPLERS = {SAMPLER_ON, SAMPLER_OFF, SAMPLER_RATIO};
