@@ -25,6 +25,7 @@ public final class OpenTelemetryConfigurationConstants {
     public static final String SERVICE_NAME = "service-name";
     public static final String EXPORTER_TYPE = "exporter-type";
     public static final String ENDPOINT = "endpoint";
+    public static final String COMPRESSION = "compression";
     public static final String SPAN_PROCESSOR_TYPE = "span-processor-type";
     public static final String BATCH_DELAY = "batch-delay";
     public static final String MAX_QUEUE_SIZE = "max-queue-size";
@@ -78,10 +79,15 @@ public final class OpenTelemetryConfigurationConstants {
     public static final String[] ALLOWED_EXEMPLAR_FILTERS = {EXEMPLAR_FILTER_ALWAYS_ON, EXEMPLAR_FILTER_ALWAYS_OFF, EXEMPLAR_FILTER_TRACE_BASED};
     public static final String[] ALLOWED_EXPORTERS = {EXPORTER_JAEGER, EXPORTER_OTLP};
     public static final String[] ALLOWED_TEMPORALITY = {TEMPORALITY_DELTA, TEMPORALITY_LOWMEMORY, TEMPORALITY_CUMULATIVE};
+
     public static final String SAMPLER_ON = "on";
     public static final String SAMPLER_OFF = "off";
     public static final String[] ALLOWED_SAMPLERS = {SAMPLER_ON, SAMPLER_OFF, SAMPLER_RATIO};
+
     public static final String SPAN_PROCESSOR_BATCH = "batch";
     public static final String SPAN_PROCESSOR_SIMPLE = "simple";
     public static final String[] ALLOWED_SPAN_PROCESSORS = {SPAN_PROCESSOR_BATCH, SPAN_PROCESSOR_SIMPLE};
+
+    public static final String COMPRESSION_GZIP = "gzip";
+    public static final String[] ALLOWED_COMPRESSION = {COMPRESSION_GZIP};
 }
