@@ -122,8 +122,9 @@ class OpenTelemetrySubsystemRegistrar implements SubsystemResourceDefinitionRegi
             .setValidator(new StringAllowedValuesValidator(OpenTelemetryConfigurationConstants.ALLOWED_SPAN_PROCESSORS))
             .build();
 
-    public static final SimpleAttributeDefinition TRACE_EXPORT_INTERVAL = SimpleAttributeDefinitionBuilder
-            .create(EXPORT_INTERVAL, ModelType.LONG, true)
+    public static final SimpleAttributeDefinition TRACES_EXPORT_INTERVAL = SimpleAttributeDefinitionBuilder
+            .create(OpenTelemetryConfigurationConstants.TRACES_EXPORT_INTERVAL, ModelType.LONG, true)
+            .setXmlName(EXPORT_INTERVAL)
             .setStability(Stability.COMMUNITY)
             .setAllowExpression(true)
             .setAttributeGroup(GROUP_SPAN_PROCESSOR)
@@ -194,7 +195,8 @@ class OpenTelemetrySubsystemRegistrar implements SubsystemResourceDefinitionRegi
     // *****************************************************************************************************************
     // Metrics attributes
     public static final SimpleAttributeDefinition METRICS_EXPORT_INTERVAL = SimpleAttributeDefinitionBuilder
-        .create(EXPORT_INTERVAL, ModelType.LONG, true)
+        .create(OpenTelemetryConfigurationConstants.METRICS_EXPORT_INTERVAL, ModelType.LONG, true)
+        .setXmlName(EXPORT_INTERVAL)
         .setStability(Stability.COMMUNITY)
         .setAllowExpression(true)
         .setAttributeGroup(GROUP_METRICS)
@@ -239,7 +241,8 @@ class OpenTelemetrySubsystemRegistrar implements SubsystemResourceDefinitionRegi
     // *****************************************************************************************************************
     // Log attributes
     public static final SimpleAttributeDefinition LOGS_EXPORT_INTERVAL = SimpleAttributeDefinitionBuilder
-        .create(EXPORT_INTERVAL, ModelType.LONG, true)
+        .create(OpenTelemetryConfigurationConstants.LOGS_EXPORT_INTERVAL, ModelType.LONG, true)
+        .setXmlName(EXPORT_INTERVAL)
         .setStability(Stability.COMMUNITY)
         .setAllowExpression(true)
         .setAttributeGroup(GROUP_LOGS)
@@ -251,7 +254,7 @@ class OpenTelemetrySubsystemRegistrar implements SubsystemResourceDefinitionRegi
         // General
         SERVICE_NAME, EXPORTER, ENDPOINT, COMPRESSION,
         // Tracing
-        SPAN_PROCESSOR_TYPE, TRACE_EXPORT_INTERVAL, MAX_QUEUE_SIZE, MAX_EXPORT_BATCH_SIZE, EXPORT_TIMEOUT, SAMPLER, RATIO,
+        SPAN_PROCESSOR_TYPE, TRACES_EXPORT_INTERVAL, MAX_QUEUE_SIZE, MAX_EXPORT_BATCH_SIZE, EXPORT_TIMEOUT, SAMPLER, RATIO,
         // Metrics
         METRICS_EXPORT_INTERVAL, METRICS_EXEMPLAR_FILTER, METRICS_CARDINALITY_LIMIT, METRICS_TEMPORALITY, METRICS_HISTOGRAM_AGGREGATION,
         // Logs
@@ -278,7 +281,7 @@ class OpenTelemetrySubsystemRegistrar implements SubsystemResourceDefinitionRegi
             .addCapability(OPENTELEMETRY_CONFIG_CAPABILITY)
             .withRuntimeHandler(ResourceOperationRuntimeHandler.configureService(this))
             .addAttributes(ATTRIBUTES)
-            .renameAttribute(TRACE_BATCH_DELAY, TRACE_EXPORT_INTERVAL)
+            .renameAttribute(TRACE_BATCH_DELAY, TRACES_EXPORT_INTERVAL)
             .withAddOperationRestartFlag(OperationEntry.Flag.RESTART_ALL_SERVICES)
             .withRemoveOperationRestartFlag(OperationEntry.Flag.RESTART_ALL_SERVICES)
             .withDeploymentChainContributor(target -> {
@@ -312,7 +315,7 @@ class OpenTelemetrySubsystemRegistrar implements SubsystemResourceDefinitionRegi
             .setMaxExportBatchSize(OpenTelemetrySubsystemRegistrar.MAX_EXPORT_BATCH_SIZE.resolveModelAttribute(context, model).asLongOrNull())
             .setCompression(OpenTelemetrySubsystemRegistrar.COMPRESSION.resolveModelAttribute(context, model).asStringOrNull())
 
-            .setTracingExportInterval(OpenTelemetrySubsystemRegistrar.TRACE_EXPORT_INTERVAL.resolveModelAttribute(context, model).asLongOrNull())
+            .setTracingExportInterval(OpenTelemetrySubsystemRegistrar.TRACES_EXPORT_INTERVAL.resolveModelAttribute(context, model).asLongOrNull())
             .setSampler(OpenTelemetrySubsystemRegistrar.SAMPLER.resolveModelAttribute(context, model).asStringOrNull())
             .setSamplerRatio(OpenTelemetrySubsystemRegistrar.RATIO.resolveModelAttribute(context, model).asDoubleOrNull())
 

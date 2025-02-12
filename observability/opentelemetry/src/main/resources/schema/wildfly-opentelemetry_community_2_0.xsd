@@ -130,14 +130,14 @@
                         <xs:attribute name="exemplar-filter" default="TRACE_BASED">
                             <xs:annotation>
                                 <xs:documentation>
-                                    The filter for exemplar sampling. Can be ALWAYS_OFF, ALWAYS_ON or TRACE_BASED.
+                                    The filter for exemplar sampling.
                                 </xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
-                                    <xs:enumeration value="ALWAYS_OFF"/>
-                                    <xs:enumeration value="ALWAYS_ON"/>
-                                    <xs:enumeration value="TRACE_BASED"/>
+                                    <xs:enumeration value="always_off"/>
+                                    <xs:enumeration value="always_on"/>
+                                    <xs:enumeration value="trace_based"/>
                                 </xs:restriction>
                             </xs:simpleType>
                         </xs:attribute>
@@ -153,29 +153,27 @@
                         <xs:attribute name="temporality" default="CUMULATIVE">
                             <xs:annotation>
                                 <xs:documentation>
-                                    The preferred output aggregation temporality. Options include DELTA, LOWMEMORY, and
-                                    CUMULATIVE.
+                                    The preferred output aggregation temporality.
                                 </xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
-                                    <xs:enumeration value="DELTA"/>
-                                    <xs:enumeration value="LOWMEMORY"/>
-                                    <xs:enumeration value="CUMULATIVE"/>
+                                    <xs:enumeration value="delta"/>
+                                    <xs:enumeration value="lowmemory"/>
+                                    <xs:enumeration value="cumulative"/>
                                 </xs:restriction>
                             </xs:simpleType>
                         </xs:attribute>
-                        <xs:attribute name="histogram-aggregation" default="EXPLICIT_BUCKET_HISTOGRAM">
+                        <xs:attribute name="histogram-aggregation" default="explicit_bucket_histogram">
                             <xs:annotation>
                                 <xs:documentation>
-                                    The preferred default histogram aggregation. Options include
-                                    BASE2_EXPONENTIAL_BUCKET_HISTOGRAM and EXPLICIT_BUCKET_HISTOGRAM.
+                                    The preferred default histogram aggregation.
                                 </xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
-                                    <xs:enumeration value="BASE2_EXPONENTIAL_BUCKET_HISTOGRAM"/>
-                                    <xs:enumeration value="EXPLICIT_BUCKET_HISTOGRAM"/>
+                                    <xs:enumeration value="base2_exponential_bucket_histogram"/>
+                                    <xs:enumeration value="explicit_bucket_histogram"/>
                                 </xs:restriction>
                             </xs:simpleType>
                         </xs:attribute>

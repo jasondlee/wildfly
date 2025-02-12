@@ -46,7 +46,7 @@ public enum OpenTelemetrySubsystemSchema implements PersistentSubsystemSchema<Op
 
         List<AttributeDefinition> attributes = new LinkedList<>(OpenTelemetrySubsystemRegistrar.ATTRIBUTES);
         if (this.since(VERSION_2_0)) {
-            attributes.add(OpenTelemetrySubsystemRegistrar.TRACE_EXPORT_INTERVAL);
+            attributes.add(OpenTelemetrySubsystemRegistrar.TRACES_EXPORT_INTERVAL);
         } else {
             attributes.add(OpenTelemetrySubsystemRegistrar.TRACE_BATCH_DELAY);
         }
