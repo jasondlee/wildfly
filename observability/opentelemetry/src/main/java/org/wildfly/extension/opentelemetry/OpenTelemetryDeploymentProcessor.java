@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import io.smallrye.opentelemetry.api.OpenTelemetryConfig;
 import io.smallrye.opentelemetry.implementation.cdi.OpenTelemetryExtension;
 import org.jboss.as.controller.capability.CapabilityServiceSupport;
 import org.jboss.as.ee.structure.DeploymentType;
@@ -26,10 +27,10 @@ import org.wildfly.extension.opentelemetry.api.OpenTelemetryCdiExtension;
 import org.wildfly.extension.opentelemetry.api.WildFlyOpenTelemetryConfig;
 
 class OpenTelemetryDeploymentProcessor implements DeploymentUnitProcessor {
-    private final Supplier<WildFlyOpenTelemetryConfig> openTelemetryConfig;
+    private final Supplier<OpenTelemetryService> otelService;
 
-    public OpenTelemetryDeploymentProcessor(Supplier<WildFlyOpenTelemetryConfig> openTelemetryConfig) {
-        this.openTelemetryConfig = openTelemetryConfig;
+    public OpenTelemetryDeploymentProcessor(Supplier<OpenTelemetryService> otelService) {
+        this.otelService = otelService;
     }
 
     @Override
@@ -51,13 +52,21 @@ class OpenTelemetryDeploymentProcessor implements DeploymentUnitProcessor {
                 return;
             }
 
-            Map<String, String> config = new HashMap<>(openTelemetryConfig.get().properties());
+            final WildFlyOpenTelemetryConfig openTelemetryConfig = otelService.get().getOpenTelemetryConfig();
+
+            Map<String, String> config = new HashMap<>(openTelemetryConfig.properties());
+
             if (!config.containsKey(WildFlyOpenTelemetryConfig.OTEL_SERVICE_NAME)) {
                 config.put(WildFlyOpenTelemetryConfig.OTEL_SERVICE_NAME, getServiceName(deploymentUnit));
             }
 
+            // Make sure the application instance of OpenTelemetry is configured to disable system metrics and root
+            // logger handler
+            config.put(OpenTelemetryConfig.PROPERTY_DISABLE_SYSTEM_METRICS, "true");
+            config.put(OpenTelemetryConfig.PROPERTY_ADD_LOG_HANDLER, "false");
+
             weldCapability.registerExtensionInstance(
-                    new OpenTelemetryCdiExtension(!openTelemetryConfig.get().isMpTelemetryInstalled(), config), deploymentUnit);
+                    new OpenTelemetryCdiExtension(!openTelemetryConfig.isMpTelemetryInstalled(), config), deploymentUnit);
             weldCapability.registerExtensionInstance(new OpenTelemetryExtension(), deploymentUnit);
         } catch (CapabilityServiceSupport.NoSuchCapabilityException e) {
             // We should not be here since the subsystem depends on weld capability. Just in case ...

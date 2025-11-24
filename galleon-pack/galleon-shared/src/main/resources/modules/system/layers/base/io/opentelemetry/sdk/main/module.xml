@@ -22,7 +22,8 @@
         <module name="io.opentelemetry.context"/>
         <module name="io.opentelemetry.exporter"/>
         <module name="io.opentelemetry.semconv"/>
-        <module name="io.smallrye.opentelemetry" services="export"/>
+        <module name="io.opentelemetry.otlp"/>
+        <module name="io.smallrye.opentelemetry" export="true" services="export"/>
 
         <module name="java.logging"/>
         <module name="jdk.unsupported"/>
