@@ -30,7 +30,6 @@ import io.micrometer.core.instrument.distribution.pause.PauseDetector;
 import io.micrometer.core.instrument.search.RequiredSearch;
 import io.micrometer.core.instrument.search.Search;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.wildfly.extension.micrometer.MicrometerExtensionLogger;
 
 public class ApplicationRegistry extends SimpleMeterRegistry {
     static final String TAG_WF_DEPLOYMENT = "WF_DEPLOYMENT";
@@ -135,12 +134,6 @@ public class ApplicationRegistry extends SimpleMeterRegistry {
     @Override
     public void clear() {
         getMeters().forEach(this::remove);
-    }
-
-    @Override
-    public Config config() {
-        MicrometerExtensionLogger.MICROMETER_LOGGER.configNotSupported();
-        return super.config();
     }
 
     @Override
