@@ -2,12 +2,11 @@
  * Copyright The WildFly Authors
  * SPDX-License-Identifier: Apache-2.0
  */
-package org.wildfly.test.integration.observability.micrometer.addremove;
+package org.wildfly.test.integration.metrics;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.wildfly.test.integration.observability.setuptask.PrometheusSetupTask.PROMETHEUS_CONTEXT;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +18,6 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.input.Tailer;
-import org.arquillian.testcontainers.api.TestcontainersRequired;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -36,28 +34,27 @@ import org.jboss.as.test.shared.observability.NotificationProbeServlet;
 import org.jboss.as.test.shared.observability.ResourceMetricsCheck;
 import org.jboss.as.test.shared.observability.ServerLogTailerListener;
 import org.jboss.as.test.shared.observability.signals.PrometheusMetric;
+import org.jboss.as.test.shared.util.AssumeTestGroupUtil;
 import org.jboss.dmr.ModelNode;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.wildfly.plugin.tools.server.ServerManager;
-import org.wildfly.test.integration.observability.setuptask.PrometheusSetupTask;
 
 @RunWith(Arquillian.class)
-@ServerSetup({
-        PrometheusSetupTask.class,
-        MessagingSubsystemSetupTask.class})
-@TestcontainersRequired
+@ServerSetup({MessagingSubsystemSetupTask.class})
 @RunAsClient
-public class MicrometerResourceAddRemoveTestCase {
-    private static final String DEPLOYMENT = "micrometer-notification-probe.war";
-    private static final String QUEUE_NAME = "micrometer-resource-add-remove";
+public class MetricsResourceAddRemoveTestCase {
+    private static final String DEPLOYMENT = "metrics-notification-probe.war";
+    private static final String QUEUE_NAME = "metrics-resource-add-remove";
     private static final String QUEUE_JNDI_NAME = "java:/jms/queue/" + QUEUE_NAME;
     private static final int MESSAGE_COUNT = 10;
-    private static final String METRIC_NAME = "messaging_activemq_message_count";
+    private static final String METRIC_NAME = "wildfly_messaging_activemq_message_count";
+    private static final String METRICS_CONTEXT = "/metrics";
     private static final String FAILED_READ = "WFLYCTL0216";
     private static final String FAILED_OPERATION = "WFLYCTL0013";
     private static final String MANIFEST = "Dependencies: org.jboss.as.controller,org.jboss.as.server,org.jboss.msc\n";
@@ -88,32 +85,34 @@ public class MicrometerResourceAddRemoveTestCase {
     @Deployment(name = DEPLOYMENT, testable = false)
     public static Archive<?> deployment() {
         return ShrinkWrap.create(WebArchive.class, DEPLOYMENT)
-                         .addClasses(NotificationProbeServlet.class)
-                         .addAsManifestResource(new StringAsset(MANIFEST), "MANIFEST.MF")
-                         .addAsWebInfResource(new StringAsset(WEB_XML), "web.xml");
+                .addClasses(NotificationProbeServlet.class)
+                .addAsManifestResource(new StringAsset(MANIFEST), "MANIFEST.MF")
+                .addAsWebInfResource(new StringAsset(WEB_XML), "web.xml");
+    }
+
+    @BeforeClass
+    public static void skipNonPreview() {
+        // Needs embedded test broker which is not available in WildFly Preview
+        AssumeTestGroupUtil.assumeNotWildFlyPreview();
     }
 
     @Test
     public void addsAndRemovesResourceMetrics() throws Exception {
         ServerLogTailerListener listener = new ServerLogTailerListener();
         JMSOperations jmsOperations = JMSOperationsProvider.getInstance(managementClient.getControllerClient());
-        MessagingSubsystemSetupTask messagingSetup = new MessagingSubsystemSetupTask();
         boolean queueCreated = false;
         try (Tailer ignored = Tailer.builder()
-                                    .setFile(getServerLogFile())
-                                    .setTailerListener(listener)
-                                    .setDelayDuration(Duration.ofMillis(500))
-                                    .get()) {
-            messagingSetup.setup(managementClient, null);
+                .setFile(getServerLogFile())
+                .setTailerListener(listener)
+                .setDelayDuration(Duration.ofMillis(500))
+                .get()) {
             clearNotifications();
-
             jmsOperations.createJmsQueue(QUEUE_NAME, QUEUE_JNDI_NAME);
             queueCreated = true;
 
             assertEventually(() -> assertNotification("resource-added"),
                     "JMS did not emit a resource-added notification for " + QUEUE_NAME);
             sendMessages();
-
             assertEventually(() -> assertQueueMetric(fetchMetrics(), true),
                     "JMS queue metric was not exported for " + QUEUE_NAME);
             listener.logs.clear();
@@ -124,14 +123,12 @@ public class MicrometerResourceAddRemoveTestCase {
                     "JMS did not emit a resource-removed notification for " + QUEUE_NAME);
             assertEventually(() -> assertQueueMetric(fetchMetrics(), false),
                     "JMS queue metric was not removed for " + QUEUE_NAME);
-
             assertNoQueueReadErrors(listener);
         } finally {
             if (queueCreated) {
                 jmsOperations.removeJmsQueue(QUEUE_NAME);
             }
             jmsOperations.close();
-            messagingSetup.tearDown(managementClient, null);
         }
     }
 
@@ -140,9 +137,7 @@ public class MicrometerResourceAddRemoveTestCase {
         try (Client client = ClientBuilder.newClient()) {
             for (int i = 0; i < MESSAGE_COUNT; i++) {
                 try (Response response = client.target(requestUrl).request().get()) {
-                    String responseBody = response.readEntity(String.class);
-                    assertEquals("Message producer returned " + response.getStatus() + ": " + responseBody,
-                            200, response.getStatus());
+                    assertEquals(200, response.getStatus());
                 }
             }
         }
@@ -164,18 +159,17 @@ public class MicrometerResourceAddRemoveTestCase {
         if (clear) {
             requestUrl += "?clear=true";
         }
-        try (Client client = ClientBuilder.newClient();
-             Response response = client.target(requestUrl).request().get()) {
-            assertEquals("Notification probe returned " + response.getStatus(),
-                    200, response.getStatus());
-            return List.of(response.readEntity(String.class).split("\\R"));
+        try (Client client = ClientBuilder.newClient(); Response response = client.target(requestUrl).request().get()) {
+            assertEquals(200, response.getStatus());
+            String body = response.readEntity(String.class);
+            return body.isEmpty() ? List.of() : List.of(body.split("\\R"));
         }
     }
 
     private static void assertQueueMetric(List<PrometheusMetric> metrics, boolean expected) {
         boolean found = metrics.stream().anyMatch(metric -> METRIC_NAME.equals(metric.getKey())
-                && "jms-queue".equals(metric.getTags().get("type"))
-                && QUEUE_NAME.equals(metric.getTags().get("name")));
+                && "default".equals(metric.getTags().get("server"))
+                && QUEUE_NAME.equals(metric.getTags().get("jms_queue")));
         assertEquals("Unexpected JMS queue metric state: " + metrics, expected, found);
     }
 
@@ -193,8 +187,8 @@ public class MicrometerResourceAddRemoveTestCase {
     private List<PrometheusMetric> fetchMetrics() throws Exception {
         try (Client client = ClientBuilder.newClient();
              Response response = client.target(String.format("http://%s:%s%s", managementClient.getMgmtAddress(),
-                     managementClient.getMgmtPort(), PROMETHEUS_CONTEXT)).request().get()) {
-            assertTrue("Metrics endpoint returned " + response.getStatus(), response.getStatus() == 200);
+                     managementClient.getMgmtPort(), METRICS_CONTEXT)).request().get()) {
+            assertEquals(200, response.getStatus());
             return PrometheusMetric.buildPrometheusMetrics(response.readEntity(String.class));
         }
     }
@@ -213,6 +207,4 @@ public class MicrometerResourceAddRemoveTestCase {
         }
         throw failure;
     }
-
-
 }

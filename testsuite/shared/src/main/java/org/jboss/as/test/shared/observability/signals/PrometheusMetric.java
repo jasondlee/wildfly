@@ -83,8 +83,13 @@ public class PrometheusMetric {
                 if (parts.length >= 3) {
                     // key{tag="value",...} value
                     key = parts[0];
-                    tags = Arrays.stream(parts[1].split(","))
-                            .map(t -> t.split("="))
+                    List<String> labels = splitLabels(parts[1]);
+                    if (labels.stream().anyMatch(t -> !t.contains("="))) {
+                        // Malformed label field - skip the sample.
+                        continue;
+                    }
+                    tags = labels.stream()
+                            .map(t -> t.split("=", 2))
                             .collect(Collectors.toMap(i -> i[0],
                                     i -> i[1]
                                             .replaceAll("^\"", "")
@@ -107,6 +112,31 @@ public class PrometheusMetric {
         }
 
         return metrics;
+    }
+
+    private static List<String> splitLabels(String labels) {
+        List<String> result = new LinkedList<>();
+        StringBuilder label = new StringBuilder();
+        boolean quoted = false;
+        boolean escaped = false;
+        for (int i = 0; i < labels.length(); i++) {
+            char current = labels.charAt(i);
+            if (current == '"' && !escaped) {
+                quoted = !quoted;
+            }
+            if (current == ',' && !quoted) {
+                result.add(label.toString());
+                label.setLength(0);
+            } else {
+                label.append(current);
+            }
+            escaped = current == '\\' && !escaped;
+            if (current != '\\') {
+                escaped = false;
+            }
+        }
+        result.add(label.toString());
+        return result;
     }
 
     private static void extractMetadata(Map<String, String> target, String source) {
