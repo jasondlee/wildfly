@@ -33,6 +33,20 @@ public class MetricsNotificationHandlerTest {
     }
 
     @Test
+    public void startAndStopAreIdempotent() {
+        RecordingRegistry registry = new RecordingRegistry();
+        MetricsNotificationHandler handler = new MetricsNotificationHandler(registry, notification -> { }, notification -> { });
+
+        handler.start();
+        handler.start();
+        handler.stop();
+        handler.stop();
+
+        assertEquals(1, registry.registered.size());
+        assertEquals(1, registry.unregistered.size());
+    }
+
+    @Test
     public void filtersResourceLifecycleNotifications() {
         RecordingRegistry registry = new RecordingRegistry();
         MetricsNotificationHandler handler = new MetricsNotificationHandler(registry, notification -> { }, notification -> { });

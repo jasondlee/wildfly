@@ -58,12 +58,16 @@ public class MetricRegistration {
     }
 
     public void registerMetric(WildFlyMetric metric, WildFlyMetricMetadata metadata) {
-        registry.registerMetric(metric, metadata);
-        metrics.add(new RegisteredMetric(metadata.getMetricID(), metadata.getAddress()));
+        synchronized (registry) {
+            registry.registerMetric(metric, metadata);
+            metrics.add(new RegisteredMetric(metadata.getMetricID(), metadata.getAddress()));
+        }
     }
 
-    public synchronized void addRegistrationTask(Runnable task) {
-        registrationTasks.add(task);
+    public void addRegistrationTask(Runnable task) {
+        synchronized (registry) {
+            registrationTasks.add(task);
+        }
     }
 
     void addCleanUpTask(Runnable task) {

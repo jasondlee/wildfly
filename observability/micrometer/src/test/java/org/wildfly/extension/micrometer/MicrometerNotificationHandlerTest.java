@@ -33,6 +33,20 @@ public class MicrometerNotificationHandlerTest {
     }
 
     @Test
+    public void startAndStopAreIdempotent() {
+        RecordingRegistry registry = new RecordingRegistry();
+        MicrometerNotificationHandler handler = new MicrometerNotificationHandler(registry, notification -> { }, notification -> { });
+
+        handler.start();
+        handler.start();
+        handler.stop();
+        handler.stop();
+
+        assertEquals(1, registry.registered.size());
+        assertEquals(1, registry.unregistered.size());
+    }
+
+    @Test
     public void filtersResourceLifecycleNotifications() {
         RecordingRegistry registry = new RecordingRegistry();
         MicrometerNotificationHandler handler = new MicrometerNotificationHandler(registry, notification -> { }, notification -> { });

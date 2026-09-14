@@ -19,8 +19,10 @@ import org.jboss.as.controller.LocalModelControllerClient;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.ProcessStateNotifier;
 import org.jboss.as.controller.client.helpers.Operations;
+import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import org.jboss.as.controller.registry.ImmutableManagementResourceRegistration;
 import org.jboss.as.controller.registry.Resource;
+import org.jboss.dmr.ModelNode;
 import org.wildfly.extension.micrometer.jmx.JmxMicrometerCollector;
 import org.wildfly.extension.micrometer.metrics.MetricRegistration;
 import org.wildfly.extension.micrometer.metrics.MicrometerCollector;
@@ -33,7 +35,6 @@ public class MicrometerService {
     private final WildFlyCompositeRegistry micrometerRegistry;
 
     private MicrometerCollector micrometerCollector;
-    private Resource modelResource;
     private ImmutableManagementResourceRegistration modelRegistration;
     private MetricRegistration modelMetrics;
 
@@ -57,48 +58,61 @@ public class MicrometerService {
         return micrometerRegistry;
     }
 
-    public synchronized MetricRegistration collectResourceMetrics(final Resource resource,
-                                                                  ImmutableManagementResourceRegistration mrr,
-                                                                  Function<PathAddress, PathAddress> addressResolver) {
-        return micrometerCollector.collectResourceMetrics(resource, mrr, addressResolver);
+    public synchronized MetricRegistration collectDeploymentResourceMetrics(final Resource resource,
+                                                                            ImmutableManagementResourceRegistration registration,
+                                                                            Function<PathAddress, PathAddress> addressResolver) {
+        return micrometerCollector.collectResourceMetrics(resource, registration, addressResolver);
     }
 
-    public synchronized MetricRegistration collectModelMetrics(Resource resource,
-                                                                ImmutableManagementResourceRegistration registration) {
-        modelResource = resource;
+    public synchronized MetricRegistration collectRootResourceMetrics(Resource resource,
+                                                                      ImmutableManagementResourceRegistration registration) {
         modelRegistration = registration;
         modelMetrics = micrometerCollector.collectResourceMetrics(resource, registration, Function.identity());
         return modelMetrics;
     }
 
-    public synchronized void resourceAdded(PathAddress address) {
-        if (modelResource == null || modelRegistration == null || modelMetrics == null) {
+    public void resourceAdded(PathAddress address) {
+        ImmutableManagementResourceRegistration registration;
+        MetricRegistration metrics;
+        synchronized (this) {
+            registration = modelRegistration;
+            metrics = modelMetrics;
+        }
+        if (registration == null || metrics == null) {
             return;
         }
-        collectResourceMetrics(address);
-    }
-
-    private void collectResourceMetrics(PathAddress address) {
+        RuntimeException lastFailure = null;
         for (int attempt = 0; attempt < 10; attempt++) {
+            ModelNode result = null;
             try {
-                var result = modelControllerClient.execute(Operations.createReadResourceOperation(address.toModelNode()));
-                if (Operations.isSuccessfulOutcome(result)) {
-                    Resource resource = Resource.Factory.create();
-                    resource.writeModel(result.get("result"));
-                    micrometerCollector.collectResourceMetrics(resource, modelRegistration, address,
-                            Function.identity(), modelMetrics);
-                    return;
+                result = modelControllerClient.execute(Operations.createReadResourceOperation(address.toModelNode(), true));
+            } catch (RuntimeException e) {
+                lastFailure = e;
+            }
+            if (result != null && Operations.isSuccessfulOutcome(result)) {
+                Resource resource = Resource.Factory.create();
+                resource.writeModel(result.get(ModelDescriptionConstants.RESULT));
+                synchronized (this) {
+                    if (modelRegistration == registration && modelMetrics == metrics) {
+                        micrometerCollector.collectResourceMetrics(resource, registration, address,
+                                Function.identity(), metrics);
+                    }
                 }
-            } catch (RuntimeException ignored) {
-                // The resource may not be visible yet, or may have been removed before its notification was delivered.
+                return;
+            }
+            if (attempt == 9) {
+                break;
             }
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                MICROMETER_LOGGER.debug("Interrupted while collecting metrics for resource " + address);
                 return;
             }
         }
+        MICROMETER_LOGGER.unableToCollectMetrics(address, 10,
+             lastFailure == null ? "" : ": " + lastFailure.getMessage());
     }
 
     public synchronized void resourceRemoved(PathAddress address) {
@@ -111,6 +125,7 @@ public class MicrometerService {
         if (modelMetrics != null) {
             modelMetrics.unregister();
             modelMetrics = null;
+            modelRegistration = null;
         }
     }
 

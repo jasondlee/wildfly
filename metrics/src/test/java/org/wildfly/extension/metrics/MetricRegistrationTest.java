@@ -28,6 +28,23 @@ public class MetricRegistrationTest {
         assertEquals(1, registry.getMetrics().size());
     }
 
+    @Test
+    public void removesMetadataAfterTheLastMetricWithThatName() {
+        WildFlyMetricRegistry registry = new WildFlyMetricRegistry();
+        MetricRegistration registration = new MetricRegistration(registry);
+        PathAddress first = PathAddress.pathAddress("subsystem", "first");
+        PathAddress second = PathAddress.pathAddress("subsystem", "second");
+
+        registration.registerMetric(new WildFlyMetric(null, first, "metric"), metadata(first));
+        registration.registerMetric(new WildFlyMetric(null, second, "metric"), metadata(second));
+
+        registration.unregister(first);
+        assertEquals(1, registry.getMetricMetadata().size());
+
+        registration.unregister(second);
+        assertEquals(0, registry.getMetricMetadata().size());
+    }
+
     private static WildFlyMetricMetadata metadata(PathAddress address) {
         return new WildFlyMetricMetadata("metric", address, null, "description", MeasurementUnit.NONE,
                 MetricMetadata.Type.GAUGE);

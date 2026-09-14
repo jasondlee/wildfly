@@ -23,6 +23,7 @@ final class MetricsNotificationHandler implements NotificationHandler {
     private final NotificationHandlerRegistry registry;
     private final Consumer<PathAddress> resourceAdded;
     private final Consumer<PathAddress> resourceRemoved;
+    private boolean started;
 
     MetricsNotificationHandler(NotificationHandlerRegistry registry,
                                Consumer<PathAddress> resourceAdded,
@@ -32,12 +33,20 @@ final class MetricsNotificationHandler implements NotificationHandler {
         this.resourceRemoved = resourceRemoved;
     }
 
-    void start() {
+    synchronized void start() {
+        if (started) {
+            return;
+        }
         registry.registerNotificationHandler(NotificationHandlerRegistry.ANY_ADDRESS, this, FILTER);
+        started = true;
     }
 
-    void stop() {
+    synchronized void stop() {
+        if (!started) {
+            return;
+        }
         registry.unregisterNotificationHandler(NotificationHandlerRegistry.ANY_ADDRESS, this, FILTER);
+        started = false;
     }
 
     @Override

@@ -141,6 +141,9 @@ public class PrometheusMetric {
 
     private static void extractMetadata(Map<String, String> target, String source) {
         String[] parts = source.split(" ");
+        if (parts.length < 3) {
+            return;
+        }
         target.put(parts[2],
                 Arrays.stream(Arrays.copyOfRange(parts, 3, parts.length))
                         .reduce("", (total, element) -> total + " " + element));

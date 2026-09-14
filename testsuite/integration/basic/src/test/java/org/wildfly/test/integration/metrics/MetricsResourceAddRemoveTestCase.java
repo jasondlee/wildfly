@@ -25,6 +25,7 @@ import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.as.arquillian.api.ContainerResource;
 import org.jboss.as.arquillian.api.ServerSetup;
 import org.jboss.as.arquillian.container.ManagementClient;
+import org.jboss.as.arquillian.setup.SnapshotServerSetupTask;
 import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.as.test.integration.common.jms.JMSOperations;
 import org.jboss.as.test.integration.common.jms.JMSOperationsProvider;
@@ -45,8 +46,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.wildfly.plugin.tools.server.ServerManager;
 
+/**
+ * This test verifies the fix for WFLY-22219 as it relates to WildFly Metrics. Prior to the
+ * change, only server resources that were present at boot time were registered with the
+ * Metrics system for reporting. That meant, for example, if a JMS resource is added after the
+ * server was booted, it would not be reported by the Metrics system. With this Jira, support
+ * for adding dynamically added/removed resources was introduced to the subsystem, making use
+ * of the WildFly kernel's notification system. This test uses the JMS use to verify that the
+ * server can be started, resources added/removed, and that metrics will be reported for these
+ * new resources.
+ */
 @RunWith(Arquillian.class)
-@ServerSetup({MessagingSubsystemSetupTask.class})
+@ServerSetup({SnapshotServerSetupTask.class,
+        MetricsSubsystemSetupTask.class,
+        MessagingSubsystemSetupTask.class})
 @RunAsClient
 public class MetricsResourceAddRemoveTestCase {
     private static final String DEPLOYMENT = "metrics-notification-probe.war";
@@ -91,7 +104,7 @@ public class MetricsResourceAddRemoveTestCase {
     }
 
     @BeforeClass
-    public static void skipNonPreview() {
+    public static void skipPreview() {
         // Needs embedded test broker which is not available in WildFly Preview
         AssumeTestGroupUtil.assumeNotWildFlyPreview();
     }
@@ -123,13 +136,14 @@ public class MetricsResourceAddRemoveTestCase {
                     "JMS did not emit a resource-removed notification for " + QUEUE_NAME);
             assertEventually(() -> assertQueueMetric(fetchMetrics(), false),
                     "JMS queue metric was not removed for " + QUEUE_NAME);
-            assertNoQueueReadErrors(listener);
         } finally {
             if (queueCreated) {
                 jmsOperations.removeJmsQueue(QUEUE_NAME);
             }
             jmsOperations.close();
         }
+        listener.assertNoFailure();
+        assertNoQueueReadErrors(listener);
     }
 
     private void sendMessages() throws Exception {

@@ -27,6 +27,7 @@ import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.as.arquillian.api.ContainerResource;
 import org.jboss.as.arquillian.api.ServerSetup;
 import org.jboss.as.arquillian.container.ManagementClient;
+import org.jboss.as.arquillian.setup.SnapshotServerSetupTask;
 import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.as.test.integration.common.jms.JMSOperations;
 import org.jboss.as.test.integration.common.jms.JMSOperationsProvider;
@@ -46,8 +47,19 @@ import org.junit.runner.RunWith;
 import org.wildfly.plugin.tools.server.ServerManager;
 import org.wildfly.test.integration.observability.setuptask.PrometheusSetupTask;
 
+/**
+ * This test verifies the fix for WFLY-22219 as it relates to the WildFly Micrometer subsystem.
+ * Prior to the change, only server resources that were present at boot time were registered
+ * with the Metrics system for reporting. That meant, for example, if a JMS resource is added
+ * after the server was booted, it would not be reported by the Metrics system. With this Jira,
+ * support for adding dynamically added/removed resources was introduced to the subsystem,
+ * making use of the WildFly kernel's notification system. This test uses the JMS use to verify
+ * that the server can be started, resources added/removed, and that metrics will be reported
+ * for these new resources.
+ */
 @RunWith(Arquillian.class)
 @ServerSetup({
+        SnapshotServerSetupTask.class,
         PrometheusSetupTask.class,
         MessagingSubsystemSetupTask.class})
 @TestcontainersRequired
@@ -97,14 +109,12 @@ public class MicrometerResourceAddRemoveTestCase {
     public void addsAndRemovesResourceMetrics() throws Exception {
         ServerLogTailerListener listener = new ServerLogTailerListener();
         JMSOperations jmsOperations = JMSOperationsProvider.getInstance(managementClient.getControllerClient());
-        MessagingSubsystemSetupTask messagingSetup = new MessagingSubsystemSetupTask();
         boolean queueCreated = false;
         try (Tailer ignored = Tailer.builder()
                                     .setFile(getServerLogFile())
                                     .setTailerListener(listener)
                                     .setDelayDuration(Duration.ofMillis(500))
                                     .get()) {
-            messagingSetup.setup(managementClient, null);
             clearNotifications();
 
             jmsOperations.createJmsQueue(QUEUE_NAME, QUEUE_JNDI_NAME);
@@ -125,14 +135,14 @@ public class MicrometerResourceAddRemoveTestCase {
             assertEventually(() -> assertQueueMetric(fetchMetrics(), false),
                     "JMS queue metric was not removed for " + QUEUE_NAME);
 
-            assertNoQueueReadErrors(listener);
         } finally {
             if (queueCreated) {
                 jmsOperations.removeJmsQueue(QUEUE_NAME);
             }
             jmsOperations.close();
-            messagingSetup.tearDown(managementClient, null);
         }
+        listener.assertNoFailure();
+        assertNoQueueReadErrors(listener);
     }
 
     private void sendMessages() throws Exception {
@@ -168,7 +178,8 @@ public class MicrometerResourceAddRemoveTestCase {
              Response response = client.target(requestUrl).request().get()) {
             assertEquals("Notification probe returned " + response.getStatus(),
                     200, response.getStatus());
-            return List.of(response.readEntity(String.class).split("\\R"));
+            String body = response.readEntity(String.class);
+            return body.isEmpty() ? List.of() : List.of(body.split("\\R"));
         }
     }
 

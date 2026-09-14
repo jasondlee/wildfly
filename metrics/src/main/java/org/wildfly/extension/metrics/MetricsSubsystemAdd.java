@@ -106,8 +106,8 @@ class MetricsSubsystemAdd extends AbstractBoottimeAddStepHandler {
                     Resource rootResource = context.readResourceFromRoot(EMPTY_ADDRESS);
 
                     MetricRegistration registration = new MetricRegistration(metricRegistry);
-                    metricCollector.collectModelMetrics(rootResource, rootResourceRegistration,
-                            exposeAnySubsystem, exposedSubsystems, prefix, registration);
+                    metricCollector.collectRootResourceMetrics(rootResource, rootResourceRegistration,
+                                                               exposeAnySubsystem, exposedSubsystems, prefix, registration);
                 }
             }, VERIFY);
         }

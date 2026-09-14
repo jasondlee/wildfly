@@ -7,6 +7,7 @@ package org.jboss.as.test.shared.observability;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,15 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
 public class ServerLogTailerListenerTest {
+    @Test
+    public void tailerFailuresAreReportedToTheTestThread() {
+        ServerLogTailerListener listener = new ServerLogTailerListener();
+        listener.handle(new IllegalStateException("tailer failure"));
+
+        AssertionError failure = assertThrows(AssertionError.class, listener::assertNoFailure);
+        assertTrue(failure.getCause() instanceof IllegalStateException);
+    }
+
     @Test
     public void linesAddedDuringIterationRemainForTheNextIteration() throws Exception {
         ServerLogTailerListener listener = new ServerLogTailerListener();

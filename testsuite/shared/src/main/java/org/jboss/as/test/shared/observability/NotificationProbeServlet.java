@@ -13,7 +13,6 @@ import jakarta.jms.JMSContext;
 import jakarta.jms.JMSProducer;
 import jakarta.jms.Queue;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,7 +23,6 @@ import org.jboss.as.controller.notification.NotificationHandlerRegistry;
 import org.jboss.as.server.CurrentServiceContainer;
 import org.jboss.msc.service.ServiceName;
 
-@WebServlet("/")
 public class NotificationProbeServlet extends HttpServlet {
     private static final List<String> NOTIFICATIONS = new CopyOnWriteArrayList<>();
     private NotificationHandlerRegistry registry;

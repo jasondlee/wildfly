@@ -55,8 +55,10 @@ public class MetricRegistration {
         metrics.add(new RegisteredMetric(metric, registry.addMeter(metric, metadata)));
     }
 
-    public synchronized void addRegistrationTask(Runnable task) {
-        registrationTasks.add(task);
+    public void addRegistrationTask(Runnable task) {
+        synchronized (registry) {
+            registrationTasks.add(task);
+        }
     }
 
     private static boolean isDescendant(PathAddress parent, PathAddress candidate) {

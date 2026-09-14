@@ -190,8 +190,8 @@ public class MicrometerSubsystemRegistrar implements SubsystemResourceDefinition
             // Given that this step runs in the VERIFY stage, and our service was started eagerly, the
             // service reference _should_ be non-null.
             if (service != null) {
-                service.collectModelMetrics(context.readResourceFromRoot(EMPTY_ADDRESS),
-                    context.getRootResourceRegistration());
+                service.collectRootResourceMetrics(context.readResourceFromRoot(EMPTY_ADDRESS),
+                                                   context.getRootResourceRegistration());
             }
         }, OperationContext.Stage.VERIFY);
 
@@ -205,7 +205,8 @@ public class MicrometerSubsystemRegistrar implements SubsystemResourceDefinition
 
         ServiceDependency<MicrometerService> micrometerService = ServiceDependency.on(MICROMETER_SERVICE);
         installers.add(ServiceInstaller.BlockingBuilder.of(() -> new MicrometerNotificationHandler(notificationRegistry.get(),
-                        micrometerService.get()::resourceAdded, micrometerService.get()::resourceRemoved))
+                    address -> micrometerService.get().resourceAdded(address),
+                    address -> micrometerService.get().resourceRemoved(address)))
                 .requires(List.of(notificationRegistry, micrometerService))
                 .withLifecycle(BlockingLifecycle.compose(MicrometerNotificationHandler::start, MicrometerNotificationHandler::stop))
                 .startWhen(StartWhen.INSTALLED)

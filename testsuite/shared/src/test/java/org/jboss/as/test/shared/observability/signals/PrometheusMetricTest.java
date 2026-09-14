@@ -92,4 +92,16 @@ class PrometheusMetricTest {
         assertEquals(1, metrics.size());
         assertEquals("requests_total", metrics.get(0).getKey());
     }
+
+    @Test
+    void skipsTruncatedMetadataLines() {
+        List<PrometheusMetric> metrics = PrometheusMetric.buildPrometheusMetrics("""
+                # HELP
+                # TYPE
+                requests_total 1
+                """);
+
+        assertEquals(1, metrics.size());
+        assertEquals("requests_total", metrics.get(0).getKey());
+    }
 }
