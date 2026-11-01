@@ -24,9 +24,7 @@ import java.util.function.Function;
 import org.jboss.as.controller.ControlledProcessState;
 import org.jboss.as.controller.LocalModelControllerClient;
 import org.jboss.as.controller.PathAddress;
-import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ProcessStateNotifier;
-import org.jboss.as.controller.client.helpers.MeasurementUnit;
 import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.as.controller.descriptions.DescriptionProvider;
 import org.jboss.as.controller.registry.AttributeAccess;
@@ -39,19 +37,35 @@ public class MetricCollector {
     private final LocalModelControllerClient modelControllerClient;
     private final ProcessStateNotifier processStateNotifier;
     private final ResourceMetricsRetryQueue resourceMetricsRetryQueue;
-    private ImmutableManagementResourceRegistration modelRegistration;
-    private MetricRegistration modelMetrics;
+    private ImmutableManagementResourceRegistration managementResourceRegistration;
+    private MetricRegistration metricRegistration;
     private boolean exposeAnySubsystem;
     private List<String> exposedSubsystems;
     private String prefix;
     private final Map<PathAddress, RuntimeException> lastFailures = new ConcurrentHashMap<>();
 
-    public MetricCollector(LocalModelControllerClient modelControllerClient, ProcessStateNotifier processStateNotifier,
-                           Executor executor) {
+    /**
+     * Creates a metric collector.
+     *
+     * @param modelControllerClient The client used for metric discovery
+     * @param processStateNotifier  notifier used to defer metric registration until the server
+     *                              is running
+     * @param executor              the management executor used for asynchronous collection
+     * @param exposeAnySubsystem    expose all subsystems
+     * @param exposedSubsystems     list of subsystems to expose
+     */
+    public MetricCollector(LocalModelControllerClient modelControllerClient,
+            ProcessStateNotifier processStateNotifier,
+            Executor executor,
+            boolean exposeAnySubsystem,
+            List<String> exposedSubsystems) {
         this.modelControllerClient = modelControllerClient;
         this.processStateNotifier = processStateNotifier;
-        this.resourceMetricsRetryQueue = new ResourceMetricsRetryQueue(executor, this::collectResourceMetrics,
-                this::unableToCollectMetrics);
+        this.exposeAnySubsystem = exposeAnySubsystem;
+        this.exposedSubsystems = exposedSubsystems;
+        this.resourceMetricsRetryQueue = new ResourceMetricsRetryQueue(executor,
+            this::processPendingResource,
+            this::unableToRegisterMetric);
     }
 
     /**
@@ -60,10 +74,12 @@ public class MetricCollector {
      * @param address the address of the added resource
      */
     public synchronized void resourceAdded(PathAddress address) {
-        if (modelRegistration == null || modelMetrics == null) {
+        if (managementResourceRegistration == null || metricRegistration == null) {
             return;
         }
-        resourceMetricsRetryQueue.add(address);
+        if (isExposingMetrics(address)) {
+            resourceMetricsRetryQueue.add(address);
+        }
     }
 
     /**
@@ -74,8 +90,8 @@ public class MetricCollector {
     public synchronized void resourceRemoved(PathAddress address) {
         resourceMetricsRetryQueue.remove(address);
         lastFailures.remove(address);
-        if (modelMetrics != null) {
-            modelMetrics.unregister(address);
+        if (metricRegistration != null) {
+            metricRegistration.unregister(address);
         }
     }
 
@@ -85,12 +101,57 @@ public class MetricCollector {
     public synchronized void stop() {
         resourceMetricsRetryQueue.stop();
         lastFailures.clear();
-        if (modelMetrics != null) {
-            modelMetrics.unregister();
-            modelMetrics = null;
+        if (metricRegistration != null) {
+            metricRegistration.unregister();
+            metricRegistration = null;
         }
-        modelRegistration = null;
+        managementResourceRegistration = null;
         exposedSubsystems = null;
+
+        modelControllerClient.close();
+    }
+
+    public synchronized void collectRootResourceMetrics(Resource resource,
+            ImmutableManagementResourceRegistration imrr,
+            String prefix,
+            MetricRegistration metricRegistration) {
+        managementResourceRegistration = imrr;
+        this.metricRegistration = metricRegistration;
+        this.prefix = prefix;
+        registerResourceMetrics(resource, imrr, Function.identity(), this.prefix, metricRegistration);
+    }
+
+    // collect metrics from the resources
+    public synchronized void registerResourceMetrics(final Resource resource,
+            ImmutableManagementResourceRegistration managementResourceRegistration,
+            Function<PathAddress, PathAddress> resourceAddressResolver,
+            String prefix,
+            MetricRegistration metricRegistration) {
+        createRegistrationTasks(resource, managementResourceRegistration, EMPTY_ADDRESS,
+                                resourceAddressResolver, metricRegistration, prefix);
+        // Defer the actual metric registration until the server is running and they can be
+        // collected w/o errors
+        PropertyChangeListener listener = new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if (ControlledProcessState.State.RUNNING == evt.getNewValue()) {
+                    metricRegistration.register();
+                } else if (ControlledProcessState.State.STOPPING == evt.getNewValue()) {
+                    // Unregister so if this is a reload they won't still be around in a static cache in MetricsRegistry
+                    // and cause problems when the server is starting
+                    metricRegistration.unregister();
+                    processStateNotifier.removePropertyChangeListener(this);
+                }
+
+            }
+        };
+        this.processStateNotifier.addPropertyChangeListener(listener);
+        metricRegistration.addCleanUpTask(() ->  processStateNotifier.removePropertyChangeListener(listener));
+
+        // If server is already running, we won't get a change event so register now
+        if (ControlledProcessState.State.RUNNING == this.processStateNotifier.getCurrentState()) {
+            metricRegistration.register();
+        }
     }
 
     /**
@@ -100,47 +161,51 @@ public class MetricCollector {
      * @param attempt the one-based attempt number
      * @return {@code true} when processing is complete, otherwise retry
      */
-    private boolean collectResourceMetrics(ResourceMetricsRetryQueue.PendingResource pendingResource, int attempt) {
+    private boolean processPendingResource(
+            ResourceMetricsRetryQueue.PendingResource pendingResource,
+            int attempt) {
         PathAddress address = pendingResource.address();
-        ImmutableManagementResourceRegistration registration;
-        MetricRegistration metrics;
+        ImmutableManagementResourceRegistration imrr;
+        MetricRegistration metricRegistration;
         boolean exposeAny;
         List<String> exposed;
         String metricPrefix;
         synchronized (this) {
-            registration = modelRegistration;
-            metrics = modelMetrics;
+            imrr = managementResourceRegistration;
+            metricRegistration = this.metricRegistration;
             exposeAny = exposeAnySubsystem;
             exposed = exposedSubsystems;
             metricPrefix = prefix;
         }
-        if (registration == null || metrics == null) {
+        if (imrr == null || metricRegistration == null) {
             return true;
         }
-        ModelNode result = null;
         try {
-            result = modelControllerClient.execute(Operations.createReadResourceOperation(address.toModelNode(), true));
+            ModelNode result = modelControllerClient.execute(
+                    Operations.createReadResourceOperation(address.toModelNode(), true));
+            if (result != null && Operations.isSuccessfulOutcome(result)) {
+                Resource resource = Resource.Factory.create();
+                resource.writeModel(result.get("result"));
+                synchronized (this) {
+                    if (System.nanoTime() < pendingResource.deadline()
+                            && resourceMetricsRetryQueue.isPending(pendingResource)
+                            && managementResourceRegistration == imrr
+                            && this.metricRegistration == metricRegistration) {
+                        createRegistrationTasks(resource, imrr, address, Function.identity(),
+                            metricRegistration, prefix);
+                        metricRegistration.register();
+                        lastFailures.remove(address);
+                        return true;
+                    }
+                    if (resourceMetricsRetryQueue.isPending(pendingResource)) {
+                        lastFailures.remove(address);
+                    }
+                }
+            }
         } catch (RuntimeException e) {
             synchronized (this) {
                 if (resourceMetricsRetryQueue.isPending(pendingResource)) {
                     lastFailures.put(address, e);
-                }
-            }
-        }
-        if (result != null && Operations.isSuccessfulOutcome(result)) {
-            Resource resource = Resource.Factory.create();
-            resource.writeModel(result.get("result"));
-            synchronized (this) {
-                if (System.nanoTime() < pendingResource.deadline()
-                        && resourceMetricsRetryQueue.isPending(pendingResource)
-                        && modelRegistration == registration && modelMetrics == metrics) {
-                    registerDynamicResource(resource, registration, address, Function.identity(), metrics,
-                                            exposeAny, exposed, metricPrefix);
-                    lastFailures.remove(address);
-                    return true;
-                }
-                if (resourceMetricsRetryQueue.isPending(pendingResource)) {
-                    lastFailures.remove(address);
                 }
             }
         }
@@ -153,85 +218,19 @@ public class MetricCollector {
      * @param address the resource address that could not be read
      * @param attempts the number of attempts made
      */
-    private synchronized void unableToCollectMetrics(PathAddress address, int attempts) {
+    private synchronized void unableToRegisterMetric(PathAddress address, int attempts) {
         RuntimeException lastFailure = lastFailures.remove(address);
-        LOGGER.unableToCollectMetrics(address, attempts,
-                lastFailure == null ? "" : ": " + lastFailure.getMessage());
-    }
-
-    public synchronized void collectRootResourceMetrics(Resource resource,
-                                                        ImmutableManagementResourceRegistration registration,
-                                                        boolean exposeAnySubsystem,
-                                                        List<String> exposedSubsystems,
-                                                        String prefix,
-                                                        MetricRegistration metricRegistration) {
-        modelRegistration = registration;
-        modelMetrics = metricRegistration;
-        this.exposeAnySubsystem = exposeAnySubsystem;
-        this.exposedSubsystems = List.copyOf(exposedSubsystems);
-        this.prefix = prefix;
-        registerResourceMetrics(resource, registration, Function.identity(), this.exposeAnySubsystem,
-                                this.exposedSubsystems, this.prefix, metricRegistration);
-    }
-
-    // collect metrics from the resources
-    public synchronized void registerResourceMetrics(final Resource resource,
-                                                     ImmutableManagementResourceRegistration managementResourceRegistration,
-                                                     Function<PathAddress, PathAddress> resourceAddressResolver,
-                                                     boolean exposeAnySubsystem,
-                                                     List<String> exposedSubsystems,
-                                                     String prefix,
-                                                     MetricRegistration registration) {
-        createRegistrationTasks(resource, managementResourceRegistration, EMPTY_ADDRESS, resourceAddressResolver, registration,
-                                exposeAnySubsystem, exposedSubsystems, prefix);
-        // Defer the actual registration until the server is running and they can be collected w/o errors
-        PropertyChangeListener listener = new PropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                if (ControlledProcessState.State.RUNNING == evt.getNewValue()) {
-                    registration.register();
-                } else if (ControlledProcessState.State.STOPPING == evt.getNewValue()) {
-                    // Unregister so if this is a reload they won't still be around in a static cache in MetricsRegistry
-                    // and cause problems when the server is starting
-                    registration.unregister();
-                    processStateNotifier.removePropertyChangeListener(this);
-                }
-
-            }
-        };
-        this.processStateNotifier.addPropertyChangeListener(listener);
-        Runnable cleanupTask = new Runnable() {
-            @Override
-            public void run() {
-                processStateNotifier.removePropertyChangeListener(listener);
-            }
-        };
-        registration.addCleanUpTask(cleanupTask);
-        // If server is already running, we won't get a change event so register now
-        if (ControlledProcessState.State.RUNNING == this.processStateNotifier.getCurrentState()) {
-            registration.register();
-        }
-    }
-
-    private synchronized void registerDynamicResource(final Resource resource,
-                                                      ImmutableManagementResourceRegistration managementResourceRegistration,
-                                                      PathAddress address,
-                                                      Function<PathAddress, PathAddress> resourceAddressResolver,
-                                                      MetricRegistration registration,
-                                                      boolean exposeAnySubsystem,
-                                                      List<String> exposedSubsystems,
-                                                      String prefix) {
-        createRegistrationTasks(resource, managementResourceRegistration, address, resourceAddressResolver, registration,
-                                exposeAnySubsystem, exposedSubsystems, prefix);
-        registration.register();
+        LOGGER.unableToRegisterMetric(address, attempts,
+                                      lastFailure == null ? "" : ": " + lastFailure.getMessage());
     }
 
     private void createRegistrationTasks(final Resource current,
-                                         ImmutableManagementResourceRegistration managementResourceRegistration,
-                                         PathAddress address,
-                                         Function<PathAddress, PathAddress> resourceAddressResolver,
-                                         MetricRegistration registration, boolean exposeAnySubsystem, List<String> exposedSubsystems, String prefix) {
-        if (!isExposingMetrics(address, exposeAnySubsystem, exposedSubsystems)) {
+            ImmutableManagementResourceRegistration managementResourceRegistration,
+            PathAddress address,
+            Function<PathAddress, PathAddress> resourceAddressResolver,
+            MetricRegistration registration,
+            String prefix) {
+        if (!isExposingMetrics(address)) {
             return;
         }
 
@@ -244,7 +243,7 @@ public class MetricCollector {
         for (Map.Entry<String, AttributeAccess> entry : attributes.entrySet()) {
             String attributeName = entry.getKey();
 
-            AttributeAccess attributeAccess = entry.getValue();
+            final AttributeAccess attributeAccess = entry.getValue();
             if (!isCollectibleMetric(attributeAccess)) {
                 continue;
             }
@@ -253,27 +252,28 @@ public class MetricCollector {
                 DescriptionProvider modelDescription = managementResourceRegistration.getModelDescription(address);
                 resourceDescription = modelDescription.getModelDescription(Locale.getDefault());
             }
-            PathAddress resourceAddress = resourceAddressResolver.apply(address);
-            MeasurementUnit unit = attributeAccess.getAttributeDefinition().getMeasurementUnit();
+            final PathAddress resourceAddress = resourceAddressResolver.apply(address);
             boolean isCounter = attributeAccess.getFlags().contains(AttributeAccess.Flag.COUNTER_METRIC);
             String attributeDescription = resourceDescription.get(ATTRIBUTES, attributeName, DESCRIPTION).asStringOrNull();
 
-            WildFlyMetric metric = new WildFlyMetric(modelControllerClient, resourceAddress, attributeName);
-            WildFlyMetricMetadata metadata = new WildFlyMetricMetadata(attributeName, resourceAddress, prefix, attributeDescription, unit, isCounter ? COUNTER : GAUGE);
-
-            registration.addRegistrationTask(() -> registration.registerMetric(metric, metadata));
+            registration.addRegistrationTask(() -> registration.registerMetric(
+                    new WildFlyMetric(resourceAddress, attributeName),
+                    new WildFlyMetricMetadata(attributeName, resourceAddress, prefix,
+                                              attributeDescription,
+                                              attributeAccess.getAttributeDefinition().getMeasurementUnit(),
+                                              isCounter ? COUNTER : GAUGE)));
         }
 
         for (String type : current.getChildTypes()) {
             for (Resource.ResourceEntry entry : current.getChildren(type)) {
-                final PathElement pathElement = entry.getPathElement();
-                final PathAddress childAddress = address.append(pathElement);
-                createRegistrationTasks(entry, managementResourceRegistration, childAddress, resourceAddressResolver, registration, exposeAnySubsystem, exposedSubsystems, prefix);
+                createRegistrationTasks(entry, managementResourceRegistration,
+                                        address.append(entry.getPathElement()),
+                                        resourceAddressResolver, registration, prefix);
             }
         }
     }
 
-    private boolean isExposingMetrics(PathAddress address, boolean exposeAnySubsystem, List<String> exposedSubsystems) {
+    private boolean isExposingMetrics(PathAddress address) {
         // root resource
         if (address.size() == 0) {
             return true;

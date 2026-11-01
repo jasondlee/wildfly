@@ -24,7 +24,6 @@ public class WildFlyMetric implements Metric {
 
     private static final ModelNode UNDEFINED = new ModelNode();
 
-    private LocalModelControllerClient modelControllerClient;
     private final PathAddress address;
     private final String attributeName;
 
@@ -32,15 +31,14 @@ public class WildFlyMetric implements Metric {
         UNDEFINED.protect();
     }
 
-    public WildFlyMetric(LocalModelControllerClient modelControllerClient, PathAddress address, String attributeName) {
-        this.modelControllerClient = modelControllerClient;
+    public WildFlyMetric(PathAddress address, String attributeName) {
         this.address = address;
         this.attributeName = attributeName;
     }
 
     @Override
-    public OptionalDouble getValue() {
-        ModelNode result = readAttributeValue(address, attributeName);
+    public OptionalDouble getValue(LocalModelControllerClient mcc) {
+        ModelNode result = readAttributeValue(mcc, address, attributeName);
         if (result.isDefined()) {
             try {
                 return OptionalDouble.of(result.asDouble());
@@ -51,13 +49,15 @@ public class WildFlyMetric implements Metric {
         return OptionalDouble.empty();
     }
 
-    private ModelNode readAttributeValue(PathAddress address, String attributeName) {
+    private ModelNode readAttributeValue(LocalModelControllerClient mcc,
+            PathAddress address,
+            String attributeName) {
         final ModelNode readAttributeOp = new ModelNode();
         readAttributeOp.get(OP).set(READ_ATTRIBUTE_OPERATION);
         readAttributeOp.get(OP_ADDR).set(address.toModelNode());
         readAttributeOp.get(ModelDescriptionConstants.INCLUDE_UNDEFINED_METRIC_VALUES).set(false);
         readAttributeOp.get(NAME).set(attributeName);
-        ModelNode response = modelControllerClient.execute(readAttributeOp);
+        ModelNode response = mcc.execute(readAttributeOp);
         String error = getFailureDescription(response);
         // TODO: Revisit this handling
         if (error != null) {

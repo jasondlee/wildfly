@@ -65,7 +65,7 @@ class MetricsSubsystemAdd extends AbstractBoottimeAddStepHandler {
         boolean securityEnabled = MetricsSubsystemDefinition.SECURITY_ENABLED.resolveModelAttribute(context, model).asBoolean();
 
         WildFlyMetricRegistryService.install(context);
-        MetricsCollectorService.install(context);
+        MetricsCollectorService.install(context, exposeAnySubsystem, exposedSubsystems);
         MetricsContextService.install(context, securityEnabled);
 
         // If the MP Metrics module is not installed, we need to install the WF Metrics DPU and initiate a metrics
@@ -74,7 +74,8 @@ class MetricsSubsystemAdd extends AbstractBoottimeAddStepHandler {
         if (!context.getCapabilityServiceSupport().hasCapability(MetricsSubsystemDefinition.METRICS_SCAN_CAPABILITY)) {
             context.addStep(new AbstractDeploymentChainStep() {
                 public void execute(DeploymentProcessorTarget processorTarget) {
-                    processorTarget.addDeploymentProcessor(SUBSYSTEM_NAME, INSTALL, POST_MODULE_METRICS, new DeploymentMetricProcessor(exposeAnySubsystem, exposedSubsystems, prefix));
+                    processorTarget.addDeploymentProcessor(SUBSYSTEM_NAME, INSTALL,
+                        POST_MODULE_METRICS, new DeploymentMetricProcessor(prefix));
                 }
             }, RUNTIME);
 
@@ -96,7 +97,6 @@ class MetricsSubsystemAdd extends AbstractBoottimeAddStepHandler {
                         }
                     }
 
-
                     ServiceController<?> serviceController = context.getServiceRegistry(false).getService(WILDFLY_COLLECTOR);
                     MetricCollector metricCollector = MetricCollector.class.cast(serviceController.getValue());
                     ServiceController<?> wildflyRegistryController = context.getServiceRegistry(false).getService(METRICS_REGISTRY_RUNTIME_CAPABILITY.getCapabilityServiceName());
@@ -106,8 +106,8 @@ class MetricsSubsystemAdd extends AbstractBoottimeAddStepHandler {
                     Resource rootResource = context.readResourceFromRoot(EMPTY_ADDRESS);
 
                     MetricRegistration registration = new MetricRegistration(metricRegistry);
-                    metricCollector.collectRootResourceMetrics(rootResource, rootResourceRegistration,
-                                                               exposeAnySubsystem, exposedSubsystems, prefix, registration);
+                    metricCollector.collectRootResourceMetrics(rootResource,
+                        rootResourceRegistration, prefix, registration);
                 }
             }, VERIFY);
         }

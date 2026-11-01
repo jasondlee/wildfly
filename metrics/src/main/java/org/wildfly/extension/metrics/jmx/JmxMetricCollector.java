@@ -30,6 +30,7 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
 
+import org.jboss.as.controller.LocalModelControllerClient;
 import org.jboss.as.controller.client.helpers.MeasurementUnit;
 import org.wildfly.extension.metrics.Metric;
 import org.wildfly.extension.metrics.MetricMetadata;
@@ -97,7 +98,7 @@ public class JmxMetricCollector {
     void register(MetricRegistry registry, JmxMetricMetadata metadata) {
         Metric metric = new Metric() {
             @Override
-            public OptionalDouble getValue() {
+            public OptionalDouble getValue(LocalModelControllerClient mcc) {
                 try {
                     return getValueFromMBean(mbs, metadata.getMBean());
                 } catch (Exception e) {

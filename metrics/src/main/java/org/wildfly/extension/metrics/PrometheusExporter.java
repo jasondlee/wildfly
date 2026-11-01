@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.Set;
 
+import org.jboss.as.controller.LocalModelControllerClient;
 import org.jboss.as.controller.client.helpers.MeasurementUnit;
 import org.wildfly.extension.metrics.MetricMetadata.MetricTag;
 
@@ -16,7 +17,7 @@ public class PrometheusExporter {
 
     private static final String LF = "\n";
 
-    public String export(WildFlyMetricRegistry registry) {
+    public String export(LocalModelControllerClient client, WildFlyMetricRegistry registry) {
         Set<String> alreadyExportedMetrics = new HashSet<String>();
 
         StringBuilder out = new StringBuilder();
@@ -26,7 +27,7 @@ public class PrometheusExporter {
             String metricName = metricID.getMetricName();
             MetricMetadata metadata = registry.getMetricMetadata().get(metricName);
             String prometheusMetricName = toPrometheusMetricName(metricID, metadata);
-            OptionalDouble metricValue = entry.getValue().getValue();
+            OptionalDouble metricValue = entry.getValue().getValue(client);
             // if the metric does not return a value, we skip printing the HELP and TYPE
             if (!metricValue.isPresent()) {
                 continue;

@@ -19,10 +19,10 @@ public class MetricRegistrationTest {
         MetricRegistration registration = new MetricRegistration(registry);
         PathAddress resource = PathAddress.pathAddress("subsystem", "test");
 
-        registration.registerMetric(new WildFlyMetric(null, resource, "metric"), metadata(resource));
-        registration.registerMetric(new WildFlyMetric(null, resource.append("child", "one"), "metric"),
+        registration.registerMetric(new WildFlyMetric(resource, "metric"), metadata(resource));
+        registration.registerMetric(new WildFlyMetric(resource.append("child", "one"), "metric"),
                 metadata(resource.append("child", "one")));
-        registration.registerMetric(new WildFlyMetric(null, PathAddress.pathAddress("subsystem", "other"), "metric"),
+        registration.registerMetric(new WildFlyMetric(PathAddress.pathAddress("subsystem", "other"), "metric"),
                 metadata(PathAddress.pathAddress("subsystem", "other")));
 
         registration.unregister(resource);
@@ -38,8 +38,8 @@ public class MetricRegistrationTest {
         PathAddress first = PathAddress.pathAddress("subsystem", "first");
         PathAddress second = PathAddress.pathAddress("subsystem", "second");
 
-        registration.registerMetric(new WildFlyMetric(null, first, "metric"), metadata(first));
-        registration.registerMetric(new WildFlyMetric(null, second, "metric"), metadata(second));
+        registration.registerMetric(new WildFlyMetric(first, "metric"), metadata(first));
+        registration.registerMetric(new WildFlyMetric(second, "metric"), metadata(second));
 
         registration.unregister(first);
         assertEquals("Metadata should remain while one metric exists", 1, registry.getMetricMetadata().size());

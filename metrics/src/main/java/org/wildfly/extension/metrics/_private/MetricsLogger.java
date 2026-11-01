@@ -58,6 +58,6 @@ public interface MetricsLogger extends BasicLogger {
     void multipleMetricsSystemsEnabled(String others);
 
     @LogMessage(level = INFO)
-    @Message(id = 7, value = "Unable to collect metrics for resource %s after %d attempts%s.")
-    void unableToCollectMetrics(PathAddress address, int attempts, String failure);
+    @Message(id = 7, value = "Unable to register metric for resource '%s' after %d attempts: %s.")
+    void unableToRegisterMetric(PathAddress address, int attempts, String failure);
 }
