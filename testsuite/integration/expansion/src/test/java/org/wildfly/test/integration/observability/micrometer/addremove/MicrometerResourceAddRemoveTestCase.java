@@ -19,6 +19,18 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.input.Tailer;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.AuthSchemes;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.arquillian.testcontainers.api.TestcontainersRequired;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -29,13 +41,16 @@ import org.jboss.as.arquillian.api.ServerSetup;
 import org.jboss.as.arquillian.container.ManagementClient;
 import org.jboss.as.arquillian.setup.SnapshotServerSetupTask;
 import org.jboss.as.controller.client.helpers.Operations;
+import org.jboss.as.controller.operations.common.Util;
 import org.jboss.as.test.integration.common.jms.JMSOperations;
 import org.jboss.as.test.integration.common.jms.JMSOperationsProvider;
+import org.jboss.as.test.shared.ServerReload;
 import org.jboss.as.test.shared.TimeoutUtil;
 import org.jboss.as.test.shared.observability.MessagingSubsystemSetupTask;
 import org.jboss.as.test.shared.observability.NotificationProbeServlet;
 import org.jboss.as.test.shared.observability.ResourceMetricsCheck;
 import org.jboss.as.test.shared.observability.ServerLogTailerListener;
+import org.jboss.as.test.shared.observability.setuptasks.RbacRealmSetupTask;
 import org.jboss.as.test.shared.observability.signals.PrometheusMetric;
 import org.jboss.dmr.ModelNode;
 import org.jboss.shrinkwrap.api.Archive;
@@ -48,20 +63,15 @@ import org.wildfly.plugin.tools.server.ServerManager;
 import org.wildfly.test.integration.observability.setuptask.PrometheusSetupTask;
 
 /**
- * This test verifies the fix for WFLY-22219 as it relates to the WildFly Micrometer subsystem.
- * Prior to the change, only server resources that were present at boot time were registered
- * with the Metrics system for reporting. That meant, for example, if a JMS resource is added
- * after the server was booted, it would not be reported by the Metrics system. With this Jira,
- * support for adding dynamically added/removed resources was introduced to the subsystem,
- * making use of the WildFly kernel's notification system. This test uses the JMS use to verify
- * that the server can be started, resources added/removed, and that metrics will be reported
- * for these new resources.
+ * Verifies Micrometer registers metrics for resources added after boot, respects exposed-subsystem configuration, and
+ * discovers dynamic resources under RBAC.
  */
 @ExtendWith(ArquillianExtension.class)
 @ServerSetup({
         SnapshotServerSetupTask.class,
         PrometheusSetupTask.class,
-        MessagingSubsystemSetupTask.class})
+        MessagingSubsystemSetupTask.class,
+        RbacRealmSetupTask.class})
 @TestcontainersRequired
 @RunAsClient
 public class MicrometerResourceAddRemoveTestCase {
@@ -109,6 +119,35 @@ public class MicrometerResourceAddRemoveTestCase {
     /** Verifies meters appear for a queue added after boot and disappear after removal. */
     @Test
     public void addsAndRemovesResourceMetrics() throws Exception {
+        runAddRemoveCycle(true);
+    }
+
+    /** Verifies dynamic collection queues only resources from exposed subsystems. */
+    @Test
+    public void onlyHandlesResourcesFromExposedSubsystems() throws Exception {
+        try {
+            setExposedSubsystems(List.of("undertow"));
+            runAddRemoveCycle(false);
+            setExposedSubsystems(List.of("messaging-activemq"));
+            runAddRemoveCycle(true);
+        } finally {
+            setExposedSubsystems(List.of("*"));
+        }
+    }
+
+    /** Verifies background resource discovery succeeds under RBAC while scrapes use the Monitor identity. */
+    @Test
+    public void addsAndRemovesResourceMetricsUnderRbac() throws Exception {
+        try {
+            setRbacProvider(true);
+            runAddRemoveCycle(true);
+        } finally {
+            setRbacProvider(false);
+        }
+    }
+
+    /** Adds a queue, verifies its metric state, and removes the queue. */
+    private void runAddRemoveCycle(boolean queueMetricExpected) throws Exception {
         ServerLogTailerListener listener = new ServerLogTailerListener();
         JMSOperations jmsOperations = JMSOperationsProvider.getInstance(managementClient.getControllerClient());
         boolean queueCreated = false;
@@ -126,8 +165,13 @@ public class MicrometerResourceAddRemoveTestCase {
                     "JMS did not emit a resource-added notification for " + QUEUE_NAME);
             sendMessages();
 
-            assertEventually(() -> assertQueueMetric(fetchMetrics(), true),
-                    "JMS queue metric was not exported for " + QUEUE_NAME);
+            if (queueMetricExpected) {
+                assertEventually(() -> assertQueueMetric(fetchMetrics(), true),
+                        "JMS queue metric was not exported for " + QUEUE_NAME);
+            } else {
+                Thread.sleep(TimeoutUtil.adjust(1_000));
+                assertQueueMetric(fetchMetrics(), false);
+            }
             listener.logs.clear();
 
             jmsOperations.removeJmsQueue(QUEUE_NAME);
@@ -145,6 +189,35 @@ public class MicrometerResourceAddRemoveTestCase {
         }
         listener.assertNoFailure();
         assertNoQueueReadErrors(listener);
+    }
+
+    /** Changes the configured subsystem filter and reloads the Micrometer service. */
+    private void setExposedSubsystems(List<String> subsystems) throws Exception {
+        ModelNode value = new ModelNode();
+        value.setEmptyList();
+        subsystems.forEach(value::add);
+        ModelNode operation = Operations.createWriteAttributeOperation(
+                Operations.createAddress("subsystem", "micrometer"), "exposed-subsystems", value);
+        ModelNode result = managementClient.getControllerClient().execute(operation);
+        if (!Operations.isSuccessfulOutcome(result)) {
+            throw new IllegalStateException(Operations.getFailureDescription(result).asString());
+        }
+        ServerReload.executeReloadAndWaitForCompletion(managementClient);
+    }
+
+    /** Enables or restores RBAC and Prometheus endpoint authentication. */
+    private void setRbacProvider(boolean enabled) throws Exception {
+        ModelNode operation = Util.createCompositeOperation(List.of(
+                Operations.createWriteAttributeOperation(RbacRealmSetupTask.authorization.toModelNode(),
+                        "provider", enabled ? "rbac" : "simple"),
+                Operations.createWriteAttributeOperation(
+                        Operations.createAddress("subsystem", "micrometer", "registry", "prometheus"),
+                        "security-enabled", enabled)));
+        ModelNode result = managementClient.getControllerClient().execute(operation);
+        if (!Operations.isSuccessfulOutcome(result)) {
+            throw new IllegalStateException(Operations.getFailureDescription(result).asString());
+        }
+        ServerReload.executeReloadAndWaitForCompletion(managementClient);
     }
 
     /** Sends probe messages so the queue meter has a non-zero value. */
@@ -213,11 +286,22 @@ public class MicrometerResourceAddRemoveTestCase {
 
     /** Fetches and parses the Micrometer Prometheus endpoint. */
     private List<PrometheusMetric> fetchMetrics() throws Exception {
-        try (Client client = ClientBuilder.newClient();
-             Response response = client.target(String.format("http://%s:%s%s", managementClient.getMgmtAddress(),
-                     managementClient.getMgmtPort(), PROMETHEUS_CONTEXT)).request().get()) {
-            assertTrue(response.getStatus() == 200, "Metrics endpoint returned " + response.getStatus());
-            return PrometheusMetric.buildPrometheusMetrics(response.readEntity(String.class));
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpClientContext context = HttpClientContext.create();
+            CredentialsProvider credentials = new BasicCredentialsProvider();
+            credentials.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(
+                    RbacRealmSetupTask.USER_MONITOR, RbacRealmSetupTask.TEST_RBAC_PASSWORD));
+            context.setCredentialsProvider(credentials);
+
+            HttpGet request = new HttpGet(String.format("http://%s:%d%s", managementClient.getMgmtAddress(),
+                    managementClient.getMgmtPort(), PROMETHEUS_CONTEXT));
+            request.setConfig(RequestConfig.custom()
+                    .setTargetPreferredAuthSchemes(List.of(AuthSchemes.DIGEST))
+                    .build());
+            try (CloseableHttpResponse response = client.execute(request, context)) {
+                assertEquals(200, response.getStatusLine().getStatusCode(), "Metrics endpoint returned an error");
+                return PrometheusMetric.buildPrometheusMetrics(EntityUtils.toString(response.getEntity()));
+            }
         }
     }
 

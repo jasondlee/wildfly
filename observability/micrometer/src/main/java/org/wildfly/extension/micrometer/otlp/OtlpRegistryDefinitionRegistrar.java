@@ -9,9 +9,11 @@ import static org.wildfly.extension.micrometer.MicrometerConfigurationConstants.
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.ModelControllerClientFactory;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathElement;
@@ -21,6 +23,7 @@ import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.client.helpers.MeasurementUnit;
+import org.jboss.as.controller.management.Capabilities;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
@@ -89,8 +92,12 @@ public class OtlpRegistryDefinitionRegistrar implements ChildResourceDefinitionR
         List<ResourceServiceInstaller> installers = new ArrayList<>(1);
         if (otlpConfig.url() != null) {
             ServiceDependency<CompositeMeterRegistry> compositeRegistry = ServiceDependency.on(MicrometerSubsystemRegistrar.COMPOSITE_METER_REGISTRY);
-            installers.add(ServiceInstaller.BlockingBuilder.of(() -> new WildFlyOtlpRegistry(otlpConfig))
-                    .requires(compositeRegistry)
+            ServiceDependency<ModelControllerClientFactory> modelControllerClientFactory =
+                    ServiceDependency.on(ModelControllerClientFactory.SERVICE_DESCRIPTOR);
+            ServiceDependency<Executor> managementExecutor = ServiceDependency.on(Capabilities.MANAGEMENT_EXECUTOR);
+            installers.add(ServiceInstaller.BlockingBuilder.of(() -> new WildFlyOtlpRegistry(
+                    otlpConfig, modelControllerClientFactory.get(), managementExecutor.get()))
+                    .requires(List.of(compositeRegistry, modelControllerClientFactory, managementExecutor))
                     .withLifecycle(registry -> new MeterRegistryLifecycle(registry, compositeRegistry.get()))
                     .startWhen(StartWhen.AVAILABLE)
                     .build());

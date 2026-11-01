@@ -9,35 +9,47 @@ import java.security.PrivilegedAction;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.registry.otlp.AggregationTemporality;
 import io.micrometer.registry.otlp.HistogramFlavor;
 import io.micrometer.registry.otlp.OtlpConfig;
 import io.micrometer.registry.otlp.OtlpMeterRegistry;
+import org.jboss.as.controller.LocalModelControllerClient;
+import org.jboss.as.controller.ModelControllerClientFactory;
 import org.jboss.as.controller.access.InVmAccess;
 import org.wildfly.extension.micrometer.WildFlyMicrometerConfig;
 import org.wildfly.extension.micrometer.registry.WildFlyRegistry;
 import org.wildfly.security.manager.WildFlySecurityManager;
 
 public class WildFlyOtlpRegistry extends OtlpMeterRegistry implements WildFlyRegistry {
-    public WildFlyOtlpRegistry(WildFlyMicrometerOtlpConfig config) {
+    private final ModelControllerClientFactory modelControllerClientFactory;
+    private final Executor executor;
+
+    /** Creates an OTLP registry that can read metrics as SuperUser during background pushes. */
+    public WildFlyOtlpRegistry(WildFlyMicrometerOtlpConfig config,
+            ModelControllerClientFactory modelControllerClientFactory, Executor executor) {
         super(config, Clock.SYSTEM);
+        this.modelControllerClientFactory = modelControllerClientFactory;
+        this.executor = executor;
     }
 
     /**
-     * [WFLY-20566] The OTLP export runs on a background scheduler thread that carries no caller identity. The model
-     * metrics are read through the same per-caller client the pull endpoint uses, so here they would resolve to the
-     * anonymous identity and be filtered to 0 under RBAC. Unlike a scrape, a server-initiated push has no caller to
-     * filter by, so the reads are performed as an in-VM call, which the management layer authorizes as SuperUser - the
-     * same mechanism {@code ModelControllerClientFactory} uses for its SuperUser clients. The pull path is unaffected.
+     * [WFLY-20566] OTLP exports have no caller identity, so each push uses a short-lived SuperUser client. The request
+     * scope lets the shared metric callbacks use that client while the existing in-VM access preserves push behavior.
      */
     @Override
     protected void publish() {
-        InVmAccess.runInVm((PrivilegedAction<Void>) () -> {
-            super.publish();
-            return null;
-        });
+        try (LocalModelControllerClient client = modelControllerClientFactory.createSuperUserClient(executor)) {
+            WildFlyRegistry.withModelControllerClient(client, () -> {
+                InVmAccess.runInVm((PrivilegedAction<Void>) () -> {
+                    super.publish();
+                    return null;
+                });
+                return null;
+            });
+        }
     }
 
     public static class WildFlyMicrometerOtlpConfig extends WildFlyMicrometerConfig implements OtlpConfig {

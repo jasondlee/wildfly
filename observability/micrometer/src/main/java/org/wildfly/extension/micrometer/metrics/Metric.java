@@ -7,11 +7,13 @@ package org.wildfly.extension.micrometer.metrics;
 
 import java.util.OptionalDouble;
 
+import org.jboss.as.controller.LocalModelControllerClient;
+
 /**
  * A representation of a metric.
  * It is possibe that the value can not be computed (e.g. if it is backed by a WildFly
  * management attribute value which is undefined).
  */
 public interface Metric {
-    OptionalDouble getValue();
+    OptionalDouble getValue(LocalModelControllerClient modelControllerClient);
 }

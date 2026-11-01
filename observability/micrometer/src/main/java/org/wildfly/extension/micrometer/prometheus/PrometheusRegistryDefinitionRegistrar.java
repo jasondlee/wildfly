@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -22,6 +23,8 @@ import io.undertow.util.HeaderValues;
 import io.undertow.util.Headers;
 import io.undertow.util.StatusCodes;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.LocalModelControllerClient;
+import org.jboss.as.controller.ModelControllerClientFactory;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
@@ -33,6 +36,7 @@ import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
+import org.jboss.as.controller.management.Capabilities;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.RuntimePackageDependency;
 import org.jboss.as.server.mgmt.domain.ExtensibleHttpManagement;
@@ -43,6 +47,7 @@ import org.wildfly.extension.micrometer.MeterRegistryLifecycle;
 import org.wildfly.extension.micrometer.MicrometerConfigurationConstants;
 import org.wildfly.extension.micrometer.MicrometerExtensionLogger;
 import org.wildfly.extension.micrometer.MicrometerSubsystemRegistrar;
+import org.wildfly.extension.micrometer.registry.WildFlyRegistry;
 import org.wildfly.service.BlockingLifecycle;
 import org.wildfly.service.Installer.StartWhen;
 import org.wildfly.subsystem.resource.ChildResourceDefinitionRegistrar;
@@ -108,34 +113,50 @@ public class PrometheusRegistryDefinitionRegistrar implements ChildResourceDefin
 
         ServiceDependency<CompositeMeterRegistry> compositeRegistry = ServiceDependency.on(MicrometerSubsystemRegistrar.COMPOSITE_METER_REGISTRY);
         ServiceDependency<ExtensibleHttpManagement> management = ServiceDependency.on(HTTP_EXTENSIBILITY_CAPABILITY, ExtensibleHttpManagement.class);
-        Consumer<WildFlyPrometheusRegistry> addHandler = registry -> management.get().addManagementHandler(serviceContext, securityEnabled, exchange -> handleRequest(exchange, registry));
+        ServiceDependency<ModelControllerClientFactory> modelControllerClientFactory =
+                ServiceDependency.on(ModelControllerClientFactory.SERVICE_DESCRIPTOR);
+        ServiceDependency<Executor> managementExecutor = ServiceDependency.on(Capabilities.MANAGEMENT_EXECUTOR);
+        Consumer<WildFlyPrometheusRegistry> addHandler = registry -> management.get().addManagementHandler(
+                serviceContext, securityEnabled,
+                exchange -> handleRequest(exchange, registry, modelControllerClientFactory.get(), managementExecutor.get()));
         Consumer<WildFlyPrometheusRegistry> removeHandler = registry -> management.get().removeContext(serviceContext);
+
         return ServiceInstaller.BlockingBuilder.of(WildFlyPrometheusRegistry::new)
-                .requires(List.of(management, compositeRegistry))
-                .withLifecycle(BlockingLifecycle.combine(List.of(BlockingLifecycle.compose(addHandler, removeHandler), registry -> new MeterRegistryLifecycle(registry, compositeRegistry.get()))))
-                .startWhen(StartWhen.AVAILABLE)
-                .build();
+            .requires(List.of(management, compositeRegistry, modelControllerClientFactory,
+                             managementExecutor))
+            .withLifecycle(BlockingLifecycle.combine(
+                   List.of(BlockingLifecycle.compose(addHandler, removeHandler),
+registry -> new MeterRegistryLifecycle(registry, compositeRegistry.get()))))
+            .startWhen(StartWhen.AVAILABLE)
+            .build();
     }
 
-    private void handleRequest(HttpServerExchange exchange, WildFlyPrometheusRegistry prometheusRegistry) {
+    private void handleRequest(HttpServerExchange exchange, WildFlyPrometheusRegistry prometheusRegistry,
+            ModelControllerClientFactory modelControllerClientFactory, Executor managementExecutor) {
         HeaderValues headerValues = exchange.getRequestHeaders().get(Headers.ACCEPT);
         List<MediaType> mediaTypes = headerValues != null ? getSortedMediaTypes(String.join(", ", headerValues)) : List.of();
         boolean sent = false;
-        for (MediaType mediaType : mediaTypes) {
-            Optional<MediaType> metricsMediaType = getMetricsMediaType(mediaType);
-            if (metricsMediaType.isPresent()) {
-                sendMetrics(metricsMediaType.get(), prometheusRegistry, exchange);
-                sent = true;
-                break;
+        LocalModelControllerClient client = modelControllerClientFactory.createClient(managementExecutor);
+
+        try {
+            for (MediaType mediaType : mediaTypes) {
+                Optional<MediaType> metricsMediaType = getMetricsMediaType(mediaType);
+                if (metricsMediaType.isPresent()) {
+                    sendMetrics(metricsMediaType.get(), prometheusRegistry, exchange, client);
+                    sent = true;
+                    break;
+                }
             }
-        }
-        if (!sent) {
-            if (headerValues == null || headerValues.isEmpty()) {
-                sendMetrics(PROMETHEUS_TEXT_MEDIA_TYPE, prometheusRegistry, exchange);
-            } else {
-                exchange.setStatusCode(StatusCodes.NOT_ACCEPTABLE);
-                exchange.getResponseSender().send("Not Acceptable");
+            if (!sent) {
+                if (headerValues == null || headerValues.isEmpty()) {
+                    sendMetrics(PROMETHEUS_TEXT_MEDIA_TYPE, prometheusRegistry, exchange, client);
+                } else {
+                    exchange.setStatusCode(StatusCodes.NOT_ACCEPTABLE);
+                    exchange.getResponseSender().send("Not Acceptable");
+                }
             }
+        } finally {
+            client.close();
         }
     }
 
@@ -147,8 +168,13 @@ public class PrometheusRegistryDefinitionRegistrar implements ChildResourceDefin
                 .findFirst();
     }
 
-    private void sendMetrics(MediaType mediaType, WildFlyPrometheusRegistry prometheusRegistry, HttpServerExchange exchange) {
-        String metrics = prometheusRegistry.scrape(mediaType.asHeaderString());
+    private void sendMetrics(MediaType mediaType,
+            WildFlyPrometheusRegistry prometheusRegistry,
+            HttpServerExchange exchange,
+            LocalModelControllerClient client) {
+        String metrics;
+        metrics = WildFlyRegistry.withModelControllerClient(client,
+            () -> prometheusRegistry.scrape(mediaType.asHeaderString()));
         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, mediaType.asHeaderString());
         exchange.getResponseSender().send(metrics);
     }

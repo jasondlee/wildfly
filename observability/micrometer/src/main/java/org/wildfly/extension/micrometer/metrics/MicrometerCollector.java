@@ -20,7 +20,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.jboss.as.controller.ControlledProcessState;
-import org.jboss.as.controller.LocalModelControllerClient;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ProcessStateNotifier;
@@ -34,16 +33,13 @@ import org.jboss.dmr.ModelType;
 import org.wildfly.extension.micrometer.registry.WildFlyRegistry;
 
 public class MicrometerCollector implements AutoCloseable {
-    private final LocalModelControllerClient modelControllerClient;
     private final ProcessStateNotifier processStateNotifier;
     private final WildFlyRegistry micrometerRegistry;
     private final Predicate<String> subsystemFilter;
 
-    public MicrometerCollector(LocalModelControllerClient modelControllerClient,
-                               ProcessStateNotifier processStateNotifier,
+    public MicrometerCollector(ProcessStateNotifier processStateNotifier,
                                WildFlyRegistry micrometerRegistry,
                                Predicate<String> subsystemFilter) {
-        this.modelControllerClient = modelControllerClient;
         this.processStateNotifier = processStateNotifier;
         this.micrometerRegistry = micrometerRegistry;
         this.subsystemFilter = subsystemFilter;
@@ -99,7 +95,7 @@ public class MicrometerCollector implements AutoCloseable {
                                          PathAddress address,
                                          Function<PathAddress, PathAddress> addressResolver,
                                          MetricRegistration registration) {
-        if (!isExposingMetrics(address, subsystemFilter)) {
+        if (!isExposingMetrics(address)) {
             return;
         }
 
@@ -126,7 +122,7 @@ public class MicrometerCollector implements AutoCloseable {
             boolean isCounter = attributeAccess.getFlags().contains(AttributeAccess.Flag.COUNTER_METRIC);
             String attributeDescription = resourceDescription.get(ATTRIBUTES, attributeName, DESCRIPTION).asStringOrNull();
 
-            WildFlyMetric metric = new WildFlyMetric(modelControllerClient, resourceAddress, attributeName);
+            WildFlyMetric metric = new WildFlyMetric(resourceAddress, attributeName);
             WildFlyMetricMetadata metadata = new WildFlyMetricMetadata(attributeName, resourceAddress,
                     attributeDescription, unit, isCounter ? COUNTER : GAUGE);
 
@@ -142,7 +138,13 @@ public class MicrometerCollector implements AutoCloseable {
         }
     }
 
-    private boolean isExposingMetrics(PathAddress address, Predicate<String> subsystemFilter) {
+    /**
+     * Determines whether the resource's subsystem is enabled for Micrometer export.
+     *
+     * @param address the management resource address
+     * @return {@code true} when the address is exposed
+     */
+    public boolean isExposingMetrics(PathAddress address) {
         // root resource
         if (address.size() == 0) {
             return true;

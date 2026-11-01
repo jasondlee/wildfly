@@ -178,7 +178,8 @@ public class MicrometerSubsystemRegistrar implements SubsystemResourceDefinition
 
         Supplier<MicrometerService> serviceSupplier = () -> new MicrometerService.Builder()
                 .micrometerConfig(micrometerConfig)
-                .modelControllerClient(mccf.get().createClient(executor.get()))
+                // Runtime discovery runs without a caller identity; only metric scrapes use the requesting user's client.
+                .modelControllerClient(mccf.get().createSuperUserClient(executor.get()))
                 .processStateNotifier(processStateNotifier.get())
                 .micrometerRegistry(registry.get())
                 .executor(executor.get())

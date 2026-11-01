@@ -20,12 +20,12 @@ import org.jboss.as.controller.LocalModelControllerClient;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import org.jboss.dmr.ModelNode;
+import org.wildfly.extension.micrometer.registry.WildFlyRegistry;
 
 public class WildFlyMetric implements Metric {
 
     private static final ModelNode UNDEFINED = new ModelNode();
 
-    private LocalModelControllerClient modelControllerClient;
     private PathAddress address;
     private String attributeName;
 
@@ -37,8 +37,7 @@ public class WildFlyMetric implements Metric {
 
     }
 
-    public WildFlyMetric(LocalModelControllerClient modelControllerClient, PathAddress address, String attributeName) {
-        this.modelControllerClient = modelControllerClient;
+    public WildFlyMetric(PathAddress address, String attributeName) {
         this.address = address;
         this.attributeName = attributeName;
     }
@@ -47,9 +46,13 @@ public class WildFlyMetric implements Metric {
         return address;
     }
 
-    @Override
+    /** Reads the metric with the client scoped to the current exporter, or returns empty outside an export. */
     public OptionalDouble getValue() {
-        ModelNode result = readAttributeValue(address, attributeName);
+        LocalModelControllerClient client = WildFlyRegistry.getCurrentModelControllerClient();
+        if (client == null) {
+            return OptionalDouble.empty();
+        }
+        ModelNode result = readAttributeValue(client, address, attributeName);
         if (result.isDefined()) {
             try {
                 return OptionalDouble.of(result.asDouble());
@@ -60,7 +63,16 @@ public class WildFlyMetric implements Metric {
         return OptionalDouble.empty();
     }
 
-    private ModelNode readAttributeValue(PathAddress address, String attributeName) {
+    /** Reads the metric using the client supplied by the registry callback. */
+    @Override
+    public OptionalDouble getValue(LocalModelControllerClient mcc) {
+        if (mcc == null || mcc == WildFlyRegistry.getCurrentModelControllerClient()) {
+            return getValue();
+        }
+        return WildFlyRegistry.withModelControllerClient(mcc, this::getValue);
+    }
+
+    private ModelNode readAttributeValue(LocalModelControllerClient mcc, PathAddress address, String attributeName) {
         final ModelNode readAttributeOp = new ModelNode();
         readAttributeOp.get(OP).set(READ_ATTRIBUTE_OPERATION);
         readAttributeOp.get(OP_ADDR).set(address.toModelNode());
@@ -68,7 +80,7 @@ public class WildFlyMetric implements Metric {
         readAttributeOp.get(NAME).set(attributeName);
         readAttributeOp.get(OPERATION_HEADERS).get(ROLES).add("Monitor");
 
-        ModelNode response = modelControllerClient.execute(readAttributeOp);
+        ModelNode response = mcc.execute(readAttributeOp);
         String error = getFailureDescription(response);
         if (error != null) {
             // [WFLY-11933] if the value can not be read if the management resource is not accessible due to RBAC,

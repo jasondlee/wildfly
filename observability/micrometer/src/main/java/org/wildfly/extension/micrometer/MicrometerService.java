@@ -52,8 +52,9 @@ public class MicrometerService {
         this.modelControllerClient = modelControllerClient;
         this.processStateNotifier = processStateNotifier;
         this.micrometerRegistry = micrometerRegistry;
-        this.resourceMetricsRetryQueue = new ResourceMetricsRetryQueue(executor, this::collectResourceMetrics,
-                this::unableToCollectMetrics);
+        this.resourceMetricsRetryQueue = new ResourceMetricsRetryQueue(executor,
+            this::collectResourceMetrics,
+            this::unableToCollectMetrics);
     }
 
     public void start() {
@@ -88,7 +89,9 @@ public class MicrometerService {
         if (modelRegistration == null || modelMetrics == null) {
             return;
         }
-        resourceMetricsRetryQueue.add(address);
+        if (micrometerCollector.isExposingMetrics(address)) {
+            resourceMetricsRetryQueue.add(address);
+        }
     }
 
     /**
@@ -110,10 +113,14 @@ public class MicrometerService {
     public synchronized void stop() {
         resourceMetricsRetryQueue.stop();
         lastFailures.clear();
-        if (modelMetrics != null) {
-            modelMetrics.unregister();
-            modelMetrics = null;
-            modelRegistration = null;
+        try {
+            if (modelMetrics != null) {
+                modelMetrics.unregister();
+                modelMetrics = null;
+                modelRegistration = null;
+            }
+        } finally {
+            modelControllerClient.close();
         }
     }
 
@@ -187,7 +194,7 @@ public class MicrometerService {
     }
 
     private void registerModelMetrics() {
-        micrometerCollector = new MicrometerCollector(modelControllerClient, processStateNotifier, micrometerRegistry,
+        micrometerCollector = new MicrometerCollector(processStateNotifier, micrometerRegistry,
                 micrometerConfig.getSubsystemFilter());
     }
 
@@ -244,7 +251,8 @@ public class MicrometerService {
                 processStateNotifier != null &&
                 executor != null;
 
-            return new MicrometerService(micrometerConfig, modelControllerClient, processStateNotifier, micrometerRegistry, executor);
+            return new MicrometerService(micrometerConfig, modelControllerClient,
+                     processStateNotifier, micrometerRegistry, executor);
         }
     }
 }
